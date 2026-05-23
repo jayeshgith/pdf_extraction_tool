@@ -5,7 +5,16 @@ from pdfplumber import open as open_pdf
 from PIL import Image, ImageEnhance, ImageFilter
 
 tesseract_available = False
-tesseract_cmd = os.environ.get("TESSERACT_CMD", r"C:\Program Files\Tesseract-OCR\tesseract.exe")
+tesseract_cmd = os.environ.get("TESSERACT_CMD", "")
+if not tesseract_cmd or not os.path.exists(tesseract_cmd):
+    for candidate in [
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        "/usr/bin/tesseract",
+        "/usr/local/bin/tesseract",
+    ]:
+        if os.path.exists(candidate):
+            tesseract_cmd = candidate
+            break
 if os.path.exists(tesseract_cmd):
     pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
     tesseract_available = True
