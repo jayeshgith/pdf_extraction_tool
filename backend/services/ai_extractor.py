@@ -96,16 +96,13 @@ def extract_fields_rule_based(raw_text, doc_type):
 
         fields["name"] = get(NAME_RE)
         if not fields.get("name"):
-            m = re.search(r"([A-Z][a-z]+\s[A-Z][a-z]+)", raw_text)
-            if m:
-                fields["name"] = m.group(1).strip()
-        if not fields.get("name"):
             lines = [l.strip() for l in raw_text.split("\n") if l.strip()]
             for i, line in enumerate(lines):
                 if re.search(r"(pan|permanent account|income tax|govt)", line, re.I):
                     for j in range(i + 1, min(i + 4, len(lines))):
                         candidate = lines[j].strip()
-                        if re.match(r"^[A-Z][a-zA-Z\s.'-]{2,40}$", candidate) and "pan" not in candidate.lower() and "account" not in candidate.lower():
+                        if (re.match(r"^[A-Z][A-Za-z\s.'-]{2,40}$", candidate)
+                                and not re.search(r"(pan|permanent|account|number|income|tax|govt|india|date|birth|father|mother|signature)", candidate, re.I)):
                             fields["name"] = candidate
                             break
                     break

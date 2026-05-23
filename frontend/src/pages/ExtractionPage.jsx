@@ -118,8 +118,12 @@ export default function ExtractionPage() {
   const fields = doc.extracted_data || {}
   const confidences = doc.confidence_scores || {}
 
-  const isPdf = doc.file_path?.endsWith('.pdf')
-  const isImage = doc.file_path?.match(/\.(jpg|jpeg|png|webp)$/i)
+  const fileUrl = doc.file_path?.startsWith('/')
+    ? `${import.meta.env.VITE_API_URL?.replace('/api', '') || ''}${doc.file_path}`
+    : doc.file_path
+
+  const isPdf = fileUrl?.endsWith('.pdf')
+  const isImage = fileUrl?.match(/\.(jpg|jpeg|png|webp)$/i)
 
   return (
     <div className="space-y-6">
@@ -173,14 +177,14 @@ export default function ExtractionPage() {
           <div className="p-4 flex flex-col items-center justify-center min-h-[400px] bg-[#020617]">
             {isImage ? (
               <img
-                src={doc.file_path}
+                src={fileUrl}
                 alt="Document"
                 className="max-w-full max-h-[500px] rounded-lg object-contain"
               />
             ) : isPdf ? (
               <div className="w-full flex flex-col items-center">
                 <Document
-                  file={doc.file_path}
+                  file={fileUrl}
                   onLoadSuccess={onDocumentLoadSuccess}
                   loading={<Loader2 size={24} className="animate-spin text-[#6366f1]" />}
                   error={

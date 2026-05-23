@@ -2,7 +2,7 @@ import os
 import re
 import uuid
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import quote_plus
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from pymongo import MongoClient
@@ -99,8 +99,8 @@ async def upload_document(file: UploadFile = File(...)):
             "overall_confidence": overall_confidence,
             "raw_text": raw_text,
             "error_message": error_message,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc),
         }
 
         result = db.documents.insert_one(doc)
@@ -169,7 +169,7 @@ async def update_document(doc_id: str, data: dict):
     if "status" in data:
         update_fields["status"] = data["status"]
 
-    update_fields["updated_at"] = datetime.utcnow()
+    update_fields["updated_at"] = datetime.now(timezone.utc)
 
     db.documents.update_one({"_id": obj_id}, {"$set": update_fields})
 
