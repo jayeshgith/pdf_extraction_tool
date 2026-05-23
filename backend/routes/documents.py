@@ -1,7 +1,9 @@
 import os
+import re
 import uuid
 from pathlib import Path
 from datetime import datetime
+from urllib.parse import quote_plus
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from pymongo import MongoClient
 from bson import ObjectId
@@ -27,6 +29,12 @@ def get_db():
     db_name = os.environ.get("DATABASE_NAME", "docuverse")
     if not mongodb_url or mongodb_url == "mongodb://localhost:27017":
         raise HTTPException(status_code=500, detail="MongoDB URL not configured. Set MONGODB_URL in .env file.")
+
+    match = re.match(r"(mongodb\+srv://)([^:]+):([^@]+)@(.+)", mongodb_url)
+    if match:
+        prefix, username, password, rest = match.groups()
+        mongodb_url = f"{prefix}{quote_plus(username)}:{quote_plus(password)}@{rest}"
+
     client = MongoClient(
         mongodb_url,
         serverSelectionTimeoutMS=15000,
