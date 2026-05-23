@@ -34,6 +34,8 @@ const fieldMeta = {
   vendor: { icon: Building, label: 'Vendor' },
   total_amount: { icon: DollarSign, label: 'Total Amount' },
   date: { icon: Calendar, label: 'Date' },
+  holder_name: { icon: User, label: 'Holder Name' },
+  card_number: { icon: Hash, label: 'Card Number' },
 }
 
 function getConfidenceColor(score) {

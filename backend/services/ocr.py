@@ -63,27 +63,36 @@ def extract_text_from_image(image_path: str) -> str:
 
 
 def extract_text_from_pdf(pdf_path: str) -> str:
-    text_parts = []
     with open_pdf(pdf_path) as pdf:
+        text_parts = []
         for page in pdf.pages:
             page_text = page.extract_text()
             if page_text and page_text.strip():
                 text_parts.append(page_text.strip())
 
     combined = "\n".join(text_parts).strip()
-
     if combined:
         return combined
 
-    if tesseract_available and pdf.pages:
+    if not tesseract_available:
+        return ""
+
+    with open_pdf(pdf_path) as pdf:
         for page in pdf.pages:
             try:
                 img = page.to_image(resolution=300)
-                processed = preprocess_image_aggressive(img.original)
-                config = "--psm 6 --oem 3"
-                page_text = pytesseract.image_to_string(processed, config=config)
-                if page_text.strip():
-                    text_parts.append(page_text.strip())
+                configs = [
+                    ("--psm 3 --oem 3", preprocess_image_light),
+                    ("--psm 4 --oem 3", preprocess_image_light),
+                    ("--psm 6 --oem 3", preprocess_image_light),
+                    ("--psm 6 --oem 3", preprocess_image_aggressive),
+                ]
+                for config, preprocess in configs:
+                    processed = preprocess(img.original)
+                    page_text = pytesseract.image_to_string(processed, config=config).strip()
+                    if page_text:
+                        text_parts.append(page_text)
+                        break
             except Exception:
                 pass
 

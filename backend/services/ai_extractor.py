@@ -15,7 +15,7 @@ DOC_TYPES = {
     "invoice": ["document_type", "invoice_number", "name", "vendor", "date", "total_amount"],
     "bill": ["document_type", "bill_number", "vendor", "date", "total_amount", "name"],
     "resume": ["document_type", "name", "email", "phone", "skills", "education", "experience_summary"],
-    "other": ["document_type", "name", "document_number", "date", "email"],
+    "other": ["document_type", "name", "document_number", "date", "email", "phone", "father_name", "holder_name", "card_number", "address", "dob"],
 }
 
 PASSPORT_NUM_RE = r"(?:passport\s*(?:no|number|#|\.)?\s*[:\-]\s*)([A-Z]\s*[0-9]\s*[0-9]\s*[0-9]\s*[0-9]\s*[0-9]\s*[0-9]\s*[0-9])"
@@ -37,6 +37,10 @@ ADDRESS_RE = r"(?:address|residence|permanent address)\s*[:\-]\s*([\w\s,\.\-/#]+
 INVOICE_RE = r"(?:invoice\s*(?:no|number|#|\.)?\s*[:\-]\s*)([A-Z0-9\-/]+)"
 BILL_RE = r"(?:bill\s*(?:no|number|#|\.)?\s*[:\-]\s*)([A-Z0-9\-/]+)"
 DOC_NUM_RE = r"(?:document\s*(?:no|number|#|\.)?\s*[:\-]\s*)([A-Z0-9\-]+)"
+
+HOLDER_NAME_RE = r"(?:holder\s*(?:name)?|card\s*holder|cardholder|account\s*holder)\s*[:\-]\s*([A-Za-z\s\.'\-]+?)(?:\n|$)"
+CARD_NUM_RE = r"(?:card\s*(?:no|number|#|\.)?|account\s*(?:no|number|#|\.)?|member\s*(?:no|number)?)\s*[:\-]\s*([A-Z0-9\-/\s]{8,20})"
+ADDRESS_FALLBACK_RE = r"((?:door|street|road|colony|sector|phase|block|house|building|apt|flat|village|city|town|district|state|pincode|pin\s*code)[,\s]*[\w\s,\.\-/#]+(?:\n|$))"
 
 PAN_CLEAN_RE = re.compile(r"[^A-Z0-9]")
 
@@ -150,9 +154,17 @@ def extract_fields_rule_based(raw_text, doc_type):
 
     else:
         fields["name"] = get(NAME_RE)
-        fields["document_number"] = get(DOC_NUM_RE) or get(PAN_RE) or get(PASSPORT_NUM_RE)
+        if not fields.get("name"):
+            fields["name"] = get(HOLDER_NAME_RE)
+        fields["holder_name"] = get(HOLDER_NAME_RE)
+        fields["document_number"] = get(DOC_NUM_RE) or get(CARD_NUM_RE) or get(PAN_RE) or get(PASSPORT_NUM_RE)
+        fields["card_number"] = get(CARD_NUM_RE)
         fields["date"] = get(DATE_RE)
         fields["email"] = get(EMAIL_RE)
+        fields["phone"] = get(PHONE_RE)
+        fields["father_name"] = get(FATHER_RE)
+        fields["address"] = get(ADDRESS_RE) or get(ADDRESS_FALLBACK_RE)
+        fields["dob"] = get(DOB_RE) or get(DATE_RE)
 
     return {k: v for k, v in fields.items() if v}
 
@@ -166,7 +178,7 @@ def extract_with_openai(raw_text, doc_type):
         "invoice": "Extract invoice details including invoice number, customer name, vendor, date, and total amount.",
         "bill": "Extract bill/receipt details including bill number, vendor, date, and total amount.",
         "resume": "Extract resume details including full name, email, phone, skills, education, and experience.",
-        "other": "Extract any document details found: name, document number, date, email.",
+        "other": "Extract any document details found: name, document number, date, email, phone, father's name, holder name, card number, address, and date of birth. Look for labels like 'Name', 'Card Number', 'Account Number', 'Father's Name', 'Address', 'DOB', 'Phone', 'Email'.",
     }
     prompt = f"""{hints.get(doc_type, hints["other"])}
 
