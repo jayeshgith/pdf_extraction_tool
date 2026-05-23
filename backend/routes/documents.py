@@ -23,8 +23,15 @@ MAX_SIZE = 10 * 1024 * 1024
 
 BASE_DIR = Path(__file__).parent.parent
 
+_db_client = None
+_db = None
+
 
 def get_db():
+    global _db_client, _db
+    if _db is not None:
+        return _db
+
     mongodb_url = os.environ.get("MONGODB_URL", "mongodb://localhost:27017")
     db_name = os.environ.get("DATABASE_NAME", "docuverse")
     if not mongodb_url or mongodb_url == "mongodb://localhost:27017":
@@ -35,13 +42,14 @@ def get_db():
         prefix, username, password, rest = match.groups()
         mongodb_url = f"{prefix}{quote_plus(username)}:{quote_plus(password)}@{rest}"
 
-    client = MongoClient(
+    _db_client = MongoClient(
         mongodb_url,
-        serverSelectionTimeoutMS=15000,
+        serverSelectionTimeoutMS=30000,
         tls=True,
         tlsAllowInvalidCertificates=True,
     )
-    return client[db_name]
+    _db = _db_client[db_name]
+    return _db
 
 
 def get_upload_dir():

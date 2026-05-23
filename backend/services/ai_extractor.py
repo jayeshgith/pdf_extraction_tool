@@ -190,7 +190,7 @@ OCR text from document:
 
     try:
         r = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You extract structured data from OCR text. Return ONLY valid JSON."},
                 {"role": "user", "content": prompt},

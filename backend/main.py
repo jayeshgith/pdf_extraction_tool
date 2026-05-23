@@ -3,7 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 load_dotenv()
 
@@ -24,11 +24,18 @@ app.add_middleware(
 )
 
 BASE_DIR = Path(__file__).parent
-upload_dir = os.environ.get("UPLOAD_DIR", str(BASE_DIR / "uploads"))
-Path(upload_dir).mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=upload_dir), name="uploads")
+UPLOAD_DIR = os.environ.get("UPLOAD_DIR", str(BASE_DIR / "uploads"))
+Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
 
 app.include_router(documents_router, prefix="/api")
+
+
+@app.get("/uploads/{file_path:path}")
+async def serve_upload(file_path: str):
+    full_path = Path(UPLOAD_DIR) / file_path
+    if not full_path.exists() or not full_path.is_file():
+        return {"error": "File not found"}, 404
+    return FileResponse(str(full_path))
 
 
 @app.get("/api/health")
