@@ -27,7 +27,10 @@ def get_db():
     db_name = os.environ.get("DATABASE_NAME", "docuverse")
     if not mongodb_url or mongodb_url == "mongodb://localhost:27017":
         raise HTTPException(status_code=500, detail="MongoDB URL not configured. Set MONGODB_URL in .env file.")
-    client = MongoClient(mongodb_url, serverSelectionTimeoutMS=5000)
+    if "tlsAllowInvalidCertificates" not in mongodb_url:
+        separator = "&" if "?" in mongodb_url else "?"
+        mongodb_url += f"{separator}tlsAllowInvalidCertificates=true"
+    client = MongoClient(mongodb_url, serverSelectionTimeoutMS=15000)
     return client[db_name]
 
 
