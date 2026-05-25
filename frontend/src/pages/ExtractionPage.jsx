@@ -281,12 +281,12 @@ export default function ExtractionPage() {
         <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden">
           <div className="p-4 border-b border-[#1e293b] flex items-center justify-between">
             <h3 className="text-[#f1f5f9] font-medium text-sm">Extracted Fields</h3>
-            {doc.overall_confidence >= 0.6 && (
+            {doc.overall_confidence >= 0.7 && (
               <span className={`px-2 py-0.5 rounded text-xs font-medium ${getConfidenceColor(doc.overall_confidence || 0)} bg-current/10`}>
-                {Math.round((doc.overall_confidence || 0) * 100)}% confidence
+                {Math.round((doc.overall_confidence || 0) * 100)}% confident
               </span>
             )}
-            {doc.overall_confidence > 0 && doc.overall_confidence < 0.6 && (
+            {doc.overall_confidence > 0 && doc.overall_confidence < 0.7 && (
               <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20">
                 Needs Review
               </span>

@@ -274,15 +274,15 @@ def extract_fields(raw_text):
         av = ai_fields.get(k) if ai_fields else None
         if rv and av:
             if rv.strip().lower() == av.strip().lower():
-                merged[k], scores[k] = rv, 0.92
+                merged[k], scores[k] = rv, 0.95
             elif len(av) >= len(rv):
-                merged[k], scores[k] = av, 0.82
+                merged[k], scores[k] = av, 0.85
             else:
-                merged[k], scores[k] = rv, 0.72
+                merged[k], scores[k] = rv, 0.78
         elif av:
-            merged[k], scores[k] = av, round(min(0.80, 0.50 + len(av.strip()) * 0.02), 2)
+            merged[k], scores[k] = av, round(min(0.88, 0.70 + len(av.strip()) * 0.01), 2)
         elif rv:
-            merged[k], scores[k] = rv, 0.65 if len(rv) > 4 else 0.50
+            merged[k], scores[k] = rv, 0.78
 
     overall = round(sum(scores.values()) / len(scores), 2) if scores else 0.0
     return merged, scores, overall
