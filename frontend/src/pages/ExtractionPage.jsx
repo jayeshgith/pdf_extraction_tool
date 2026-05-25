@@ -167,6 +167,16 @@ export default function ExtractionPage() {
           <span className="text-sm font-medium">Back to Documents</span>
         </button>
         <div className="flex items-center gap-2">
+          <a
+            href={fileUrl}
+            download={doc.original_name}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 bg-[#1e293b] text-[#94a3b8] rounded-lg text-sm font-medium hover:text-[#f1f5f9] hover:bg-[#334155] transition-colors"
+          >
+            <svg size={16} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download
+          </a>
           {editing ? (
             <>
               <button
@@ -268,9 +278,14 @@ export default function ExtractionPage() {
         <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden">
           <div className="p-4 border-b border-[#1e293b] flex items-center justify-between">
             <h3 className="text-[#f1f5f9] font-medium text-sm">Extracted Fields</h3>
-            {doc.overall_confidence > 0 && (
+            {doc.overall_confidence >= 0.6 && (
               <span className={`px-2 py-0.5 rounded text-xs font-medium ${getConfidenceColor(doc.overall_confidence || 0)} bg-current/10`}>
                 {Math.round((doc.overall_confidence || 0) * 100)}% confidence
+              </span>
+            )}
+            {doc.overall_confidence > 0 && doc.overall_confidence < 0.6 && (
+              <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20">
+                Needs Review
               </span>
             )}
           </div>

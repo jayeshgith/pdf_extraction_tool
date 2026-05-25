@@ -70,8 +70,9 @@ export default function DocumentListPage() {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—'
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return new Date(dateStr).toLocaleString('en-IN', {
       year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+      timeZone: 'Asia/Kolkata',
     })
   }
 
