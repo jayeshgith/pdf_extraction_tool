@@ -67,15 +67,15 @@ export default function UploadPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-[#f1f5f9]">Upload Document</h2>
-        <p className="text-[#64748b] mt-1">
+        <h2 className="text-xl md:text-2xl font-bold text-[#f1f5f9]">Upload Document</h2>
+        <p className="text-[#64748b] mt-1 text-sm md:text-base">
           Upload a passport, PAN card, Aadhaar card, bill, resume, or any PDF/image for AI extraction
         </p>
       </div>
 
       <div
         {...getRootProps()}
-        className={`relative border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
+        className={`relative border-2 border-dashed rounded-xl p-8 md:p-12 text-center cursor-pointer transition-all ${
           isDragActive
             ? 'border-[#6366f1] bg-[#6366f1]/5'
             : 'border-[#334155] bg-[#0f172a] hover:border-[#6366f1]/50'

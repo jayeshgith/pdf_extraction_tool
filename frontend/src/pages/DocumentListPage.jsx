@@ -78,21 +78,21 @@ export default function DocumentListPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#f1f5f9]">Document List</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-[#f1f5f9]">Document List</h2>
           <p className="text-[#64748b] text-sm mt-1">
             View and manage all extracted documents
           </p>
         </div>
-        <div className="relative">
+        <div className="relative w-full md:w-64">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" />
           <input
             type="text"
             placeholder="Search documents..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-64 pl-10 pr-4 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-sm placeholder-[#64748b] focus:outline-none focus:border-[#6366f1] transition-colors"
+            className="w-full pl-10 pr-4 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-sm placeholder-[#64748b] focus:outline-none focus:border-[#6366f1] transition-colors"
           />
         </div>
       </div>
@@ -110,31 +110,29 @@ export default function DocumentListPage() {
             <thead>
               <tr className="border-b border-[#1e293b]">
                 <th className="text-left px-4 py-3 text-xs font-medium text-[#64748b] uppercase tracking-wider">Document</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-[#64748b] uppercase tracking-wider">Type</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-[#64748b] uppercase tracking-wider">Extracted Name</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-[#64748b] uppercase tracking-wider hidden md:table-cell">Type</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-[#64748b] uppercase tracking-wider hidden sm:table-cell">Extracted Name</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-[#64748b] uppercase tracking-wider">Status</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-[#64748b] uppercase tracking-wider">Confidence</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-[#64748b] uppercase tracking-wider">Date</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-[#64748b] uppercase tracking-wider hidden md:table-cell">Date</th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-[#64748b] uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12">
+                  <td colSpan={6} className="text-center py-12">
                     <Loader2 size={24} className="animate-spin text-[#6366f1] mx-auto" />
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12">
+                  <td colSpan={6} className="text-center py-12">
                     <FileText size={48} className="text-[#334155] mx-auto mb-3" />
                     <p className="text-[#64748b]">No documents found</p>
                   </td>
                 </tr>
               ) : (
                 filtered.map((doc) => {
-                  const conf = doc.overall_confidence
                   return (
                     <tr key={doc._id} className="border-b border-[#1e293b] hover:bg-[#1e293b]/50 transition-colors">
                       <td className="px-4 py-3">
@@ -147,10 +145,10 @@ export default function DocumentListPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden md:table-cell">
                         <span className="text-[#94a3b8] text-sm">{getDocType(doc)}</span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden sm:table-cell">
                         <span className="text-[#cbd5e1] text-sm">
                           {doc.extracted_data?.name || '—'}
                         </span>
@@ -161,22 +159,7 @@ export default function DocumentListPage() {
                           {doc.status || 'processing'}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 bg-[#1e293b] rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${
-                                conf >= 0.85 ? 'bg-[#22c55e]' : conf >= 0.6 ? 'bg-[#f59e0b]' : 'bg-[#ef4444]'
-                              }`}
-                              style={{ width: `${(conf || 0) * 100}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-[#64748b]">
-                            {conf ? `${Math.round(conf * 100)}%` : '—'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden md:table-cell">
                         <div className="flex items-center gap-1.5 text-[#64748b] text-xs">
                           <Clock size={12} />
                           {formatDate(doc.created_at || doc.upload_date)}
