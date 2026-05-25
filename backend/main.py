@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
@@ -34,8 +34,12 @@ app.include_router(documents_router, prefix="/api")
 async def serve_upload(file_path: str):
     full_path = Path(UPLOAD_DIR) / file_path
     if not full_path.exists() or not full_path.is_file():
-        return {"error": "File not found"}, 404
-    return FileResponse(str(full_path))
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(str(full_path), headers={
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "*",
+    })
 
 
 @app.get("/api/health")
@@ -46,5 +50,5 @@ async def health_check():
         "service": "DocuVerse API",
         "tesseract_installed": tesseract_available,
         "tesseract_path": tesseract_cmd if os.path.exists(tesseract_cmd) else "not found",
-        "upload_dir": upload_dir,
+        "upload_dir": UPLOAD_DIR,
     }
