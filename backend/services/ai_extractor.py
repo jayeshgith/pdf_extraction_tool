@@ -43,6 +43,8 @@ CARD_NUM_RE = r"(?:card\s*(?:no|number|#|\.)?|account\s*(?:no|number|#|\.)?|memb
 ADDRESS_FALLBACK_RE = r"((?:door|street|road|colony|sector|phase|block|house|building|apt|flat|village|city|town|district|state|pincode|pin\s*code)[,\s]*[\w\s,\.\-/#]+(?:\n|$))"
 
 PAN_CLEAN_RE = re.compile(r"[^A-Z0-9]")
+LABEL_EXCLUDE = r"(pan|permanent|account|number|income|tax|govt|india|date|birth|father|mother|signature|name|gender|address|dob|issue|expiry|nationality|phone|email|holder|card|aadhaar|uidai|resident)"
+SEP_NL = r"\s*[:\-]?\s*\n\s*"
 
 
 def detect_document_type(raw_text):
@@ -78,7 +80,14 @@ def extract_fields_rule_based(raw_text, doc_type):
 
     def get(regex):
         m = re.search(regex, raw_text, re.IGNORECASE | re.MULTILINE)
-        return m.group(1).strip() if m else None
+        if m:
+            return m.group(1).strip()
+        if r"\s*[:\-]\s*" in regex:
+            alt = regex.replace(r"\s*[:\-]\s*", SEP_NL)
+            m = re.search(alt, raw_text, re.IGNORECASE | re.MULTILINE)
+            if m:
+                return m.group(1).strip()
+        return None
 
     if doc_type == "passport":
         fields["passport_number"] = get(PASSPORT_NUM_RE) or get(r"([A-Z][0-9]{7})")
@@ -103,19 +112,28 @@ def extract_fields_rule_based(raw_text, doc_type):
             lines = [l.strip() for l in raw_text.split("\n") if l.strip()]
             for i, line in enumerate(lines):
                 if re.search(r"(pan|permanent account|income tax|govt)", line, re.I):
-                    for j in range(i + 1, min(i + 4, len(lines))):
+                    for j in range(i + 1, min(i + 6, len(lines))):
                         candidate = lines[j].strip()
-                        if (re.match(r"^[A-Z][A-Za-z\s.'-]{2,40}$", candidate)
-                                and not re.search(r"(pan|permanent|account|number|income|tax|govt|india|date|birth|father|mother|signature)", candidate, re.I)):
+                        if (not re.search(LABEL_EXCLUDE, candidate, re.I)
+                                and re.match(r"^[A-Z][A-Za-z\s.'-]{4,40}$", candidate)
+                                and " " in candidate):
                             fields["name"] = candidate
                             break
                     break
 
         fields["father_name"] = get(FATHER_RE)
         if not fields.get("father_name"):
-            m = re.search(r"(?:father|fathers)\s*[:\-.]*\s*([A-Z][a-zA-Z\s.'-]{2,40})", raw_text, re.I)
-            if m:
-                fields["father_name"] = m.group(1).strip()
+            lines = [l.strip() for l in raw_text.split("\n") if l.strip()]
+            for i, line in enumerate(lines):
+                if re.search(r"(father|fathers)", line, re.I):
+                    for j in range(i + 1, min(i + 3, len(lines))):
+                        candidate = lines[j].strip()
+                        if (not re.search(LABEL_EXCLUDE, candidate, re.I)
+                                and re.match(r"^[A-Z][A-Za-z\s.'-]{4,40}$", candidate)
+                                and " " in candidate):
+                            fields["father_name"] = candidate
+                            break
+                    break
 
         fields["dob"] = get(DOB_RE) or get(DATE_RE)
         if not fields.get("dob"):
@@ -126,9 +144,31 @@ def extract_fields_rule_based(raw_text, doc_type):
     elif doc_type == "aadhaar_card":
         fields["aadhaar_number"] = get(AADHAAR_RE)
         fields["name"] = get(NAME_RE)
+        if not fields.get("name"):
+            lines = [l.strip() for l in raw_text.split("\n") if l.strip()]
+            for i, line in enumerate(lines):
+                if re.search(r"(aadhaar|uidai)", line, re.I):
+                    for j in range(i + 1, min(i + 5, len(lines))):
+                        candidate = lines[j].strip()
+                        if (not re.search(LABEL_EXCLUDE, candidate, re.I)
+                                and re.match(r"^[A-Z][A-Za-z\s.'-]{4,40}$", candidate)
+                                and " " in candidate):
+                            fields["name"] = candidate
+                            break
+                    break
+
         fields["dob"] = get(DOB_RE) or get(DATE_RE)
         fields["gender"] = get(GENDER_RE)
+        if not fields.get("gender"):
+            m = re.search(r"(?:male|female|M|F)\b", raw_text, re.I)
+            if m:
+                fields["gender"] = m.group(0).title()
+
         fields["address"] = get(ADDRESS_RE)
+        if not fields.get("address"):
+            m = re.search(r"([A-Za-z0-9\s,.\-/#]{10,})", raw_text)
+            if m and len(m.group(1).strip()) > 15:
+                fields["address"] = m.group(1).strip()[:200]
 
     elif doc_type in ("invoice", "bill"):
         fields["invoice_number"] = get(INVOICE_RE)

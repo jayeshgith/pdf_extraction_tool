@@ -38,6 +38,16 @@ const fieldMeta = {
   card_number: { icon: Hash, label: 'Card Number' },
 }
 
+const DOC_FIELDS = {
+  passport: ['document_type', 'passport_number', 'name', 'dob', 'nationality', 'gender', 'issue_date', 'expiry_date'],
+  pan_card: ['document_type', 'pan_number', 'name', 'father_name', 'dob'],
+  aadhaar_card: ['document_type', 'aadhaar_number', 'name', 'dob', 'gender', 'address'],
+  invoice: ['document_type', 'invoice_number', 'name', 'vendor', 'date', 'total_amount'],
+  bill: ['document_type', 'bill_number', 'vendor', 'date', 'total_amount', 'name'],
+  resume: ['document_type', 'name', 'email', 'phone', 'skills', 'education', 'experience_summary'],
+  other: ['document_type', 'name', 'document_number', 'date', 'email', 'phone', 'father_name', 'holder_name', 'card_number', 'address', 'dob'],
+}
+
 function getConfidenceColor(score) {
   if (score >= 0.85) return 'text-[#22c55e]'
   if (score >= 0.6) return 'text-[#f59e0b]'
@@ -136,6 +146,8 @@ export default function ExtractionPage() {
 
   const fields = doc.extracted_data || {}
   const confidences = doc.confidence_scores || {}
+  const docType = (fields.document_type || '').toLowerCase().replace(/\s+/g, '_')
+  const relevantKeys = DOC_FIELDS[docType] || DOC_FIELDS.other
 
   const fileUrl = doc.file_path?.startsWith('/')
     ? `${(import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '')}${doc.file_path}`
@@ -263,8 +275,9 @@ export default function ExtractionPage() {
             )}
           </div>
           <div className="p-4 space-y-3 max-h-[500px] overflow-y-auto">
-            {Object.entries(fieldMeta).map(([key, meta]) => {
-              if ((fields[key] === undefined || fields[key] === null) && fields[key] !== '') return null
+            {relevantKeys.map((key) => {
+              const meta = fieldMeta[key]
+              if (!meta) return null
               const Icon = meta.icon
               const val = editing ? editedFields[key] : fields[key]
               const conf = confidences[key]
@@ -303,7 +316,7 @@ export default function ExtractionPage() {
                 <p className="text-[#94a3b8] text-sm">Extracting fields from document...</p>
               </div>
             )}
-            {!processing && Object.keys(fields).filter((k) => fieldMeta[k]).length === 0 && (
+            {!processing && relevantKeys.every((k) => !fields[k]) && (
               <div className="text-center py-8 space-y-3">
                 <AlertCircle size={32} className="text-[#f59e0b] mx-auto" />
                 <p className="text-[#94a3b8] text-sm">No fields could be extracted</p>
