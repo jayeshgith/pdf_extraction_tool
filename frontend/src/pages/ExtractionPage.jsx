@@ -59,20 +59,37 @@ export default function ExtractionPage() {
   const [editing, setEditing] = useState(false)
   const [editedFields, setEditedFields] = useState({})
   const [saving, setSaving] = useState(false)
+  const [processing, setProcessing] = useState(false)
   const [numPages, setNumPages] = useState(null)
   const [pageNum, setPageNum] = useState(1)
   const [showRaw, setShowRaw] = useState(false)
 
   useEffect(() => {
     if (!id) return
-    setLoading(true)
-    getDocument(id)
-      .then((res) => {
-        setDoc(res.data)
-        setEditedFields(res.data.extracted_data || {})
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false))
+    let cancelled = false
+
+    const fetchDoc = () =>
+      getDocument(id)
+        .then((res) => {
+          if (cancelled) return
+          setDoc(res.data)
+          setEditedFields(res.data.extracted_data || {})
+          if (res.data.status === 'processing') {
+            setProcessing(true)
+            setTimeout(fetchDoc, 2000)
+          } else {
+            setProcessing(false)
+          }
+        })
+        .catch((err) => {
+          if (!cancelled) setError(err.message)
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false)
+        })
+
+    fetchDoc()
+    return () => { cancelled = true }
   }, [id])
 
   const handleSave = async () => {
@@ -280,7 +297,13 @@ export default function ExtractionPage() {
                 </div>
               )
             })}
-            {Object.keys(fields).filter((k) => fieldMeta[k]).length === 0 && (
+            {processing && (
+              <div className="text-center py-8 space-y-3">
+                <Loader2 size={32} className="animate-spin text-[#6366f1] mx-auto" />
+                <p className="text-[#94a3b8] text-sm">Extracting fields from document...</p>
+              </div>
+            )}
+            {!processing && Object.keys(fields).filter((k) => fieldMeta[k]).length === 0 && (
               <div className="text-center py-8 space-y-3">
                 <AlertCircle size={32} className="text-[#f59e0b] mx-auto" />
                 <p className="text-[#94a3b8] text-sm">No fields could be extracted</p>

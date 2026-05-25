@@ -4,7 +4,7 @@ import uuid
 from pathlib import Path
 from datetime import datetime, timezone
 from urllib.parse import quote_plus
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query, BackgroundTasks
 from pymongo import MongoClient
 from bson import ObjectId
 
@@ -59,7 +59,7 @@ def get_upload_dir():
 
 
 @router.post("/upload")
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
     if file.content_type not in ALLOWED_TYPES:
         raise HTTPException(
             status_code=400,
@@ -80,42 +80,68 @@ async def upload_document(file: UploadFile = File(...)):
 
     file_url = f"/uploads/{unique_name}"
 
-    raw_text = ""
-    extracted_data = {}
-    confidence_scores = {}
-    overall_confidence = 0.0
-    error_message = None
+    db = get_db()
+    doc = {
+        "original_name": file.filename,
+        "file_path": file_url,
+        "file_type": file.content_type,
+        "file_size": len(content),
+        "status": "processing",
+        "extracted_data": {},
+        "confidence_scores": {},
+        "overall_confidence": 0.0,
+        "raw_text": "",
+        "error_message": None,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    }
 
+    result = db.documents.insert_one(doc)
+    doc["_id"] = str(result.inserted_id)
+
+    if background_tasks:
+        background_tasks.add_task(process_document, doc["_id"], file_path)
+
+    return doc
+
+
+def process_document(doc_id: str, file_path: str):
     try:
         raw_text = extract_text(file_path)
         extracted_data, confidence_scores, overall_confidence = extract_fields(raw_text)
+        status = "completed" if extracted_data else "failed"
+        error_message = None
     except FileNotFoundError:
+        raw_text = ""
+        extracted_data = {}
+        confidence_scores = {}
+        overall_confidence = 0.0
+        status = "failed"
         error_message = "Tesseract OCR not found. Install Tesseract or set TESSERACT_CMD env var."
     except Exception as e:
+        raw_text = ""
+        extracted_data = {}
+        confidence_scores = {}
+        overall_confidence = 0.0
+        status = "failed"
         error_message = f"Extraction error: {str(e)}"
 
     try:
         db = get_db()
-        doc = {
-            "original_name": file.filename,
-            "file_path": file_url,
-            "file_type": file.content_type,
-            "file_size": len(content),
-            "status": "completed" if extracted_data else "failed",
-            "extracted_data": extracted_data,
-            "confidence_scores": confidence_scores,
-            "overall_confidence": overall_confidence,
-            "raw_text": raw_text,
-            "error_message": error_message,
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc),
-        }
-
-        result = db.documents.insert_one(doc)
-        doc["_id"] = str(result.inserted_id)
-        return doc
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        db.documents.update_one(
+            {"_id": ObjectId(doc_id)},
+            {"$set": {
+                "status": status,
+                "extracted_data": extracted_data,
+                "confidence_scores": confidence_scores,
+                "overall_confidence": overall_confidence,
+                "raw_text": raw_text,
+                "error_message": error_message,
+                "updated_at": datetime.now(timezone.utc),
+            }}
+        )
+    except Exception:
+        pass
 
 
 @router.get("/documents")

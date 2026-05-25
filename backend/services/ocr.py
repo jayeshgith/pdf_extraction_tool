@@ -40,26 +40,18 @@ def extract_text_from_image(image_path: str) -> str:
         return ""
     image = Image.open(image_path)
 
-    scale = max(1, 2000 // max(image.size))
+    scale = max(1, 1200 // max(image.size))
     if scale > 1:
         image = image.resize((image.width * scale, image.height * scale), Image.LANCZOS)
 
-    configs = [
-        ("--psm 3 --oem 3", preprocess_image_light),
-        ("--psm 4 --oem 3", preprocess_image_light),
-        ("--psm 6 --oem 3", preprocess_image_light),
-        ("--psm 6 --oem 3", preprocess_image_aggressive),
-    ]
+    processed = preprocess_image_light(image)
+    text = pytesseract.image_to_string(processed, config="--psm 3 --oem 3").strip()
+    if text:
+        return text
 
-    seen = set()
-    for config, preprocess in configs:
-        processed = preprocess(image)
-        text = pytesseract.image_to_string(processed, config=config).strip()
-        if text and text not in seen:
-            seen.add(text)
-            return text
-
-    return ""
+    processed = preprocess_image_aggressive(image)
+    text = pytesseract.image_to_string(processed, config="--psm 6 --oem 3").strip()
+    return text
 
 
 def extract_text_from_pdf(pdf_path: str) -> str:
@@ -80,19 +72,14 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     with open_pdf(pdf_path) as pdf:
         for page in pdf.pages:
             try:
-                img = page.to_image(resolution=300)
-                configs = [
-                    ("--psm 3 --oem 3", preprocess_image_light),
-                    ("--psm 4 --oem 3", preprocess_image_light),
-                    ("--psm 6 --oem 3", preprocess_image_light),
-                    ("--psm 6 --oem 3", preprocess_image_aggressive),
-                ]
-                for config, preprocess in configs:
-                    processed = preprocess(img.original)
-                    page_text = pytesseract.image_to_string(processed, config=config).strip()
-                    if page_text:
-                        text_parts.append(page_text)
-                        break
+                img = page.to_image(resolution=200)
+                processed = preprocess_image_light(img.original)
+                page_text = pytesseract.image_to_string(processed, config="--psm 3 --oem 3").strip()
+                if not page_text:
+                    processed = preprocess_image_aggressive(img.original)
+                    page_text = pytesseract.image_to_string(processed, config="--psm 6 --oem 3").strip()
+                if page_text:
+                    text_parts.append(page_text)
             except Exception:
                 pass
 
