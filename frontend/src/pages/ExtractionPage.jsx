@@ -36,12 +36,15 @@ const fieldMeta = {
   date: { icon: Calendar, label: 'Date' },
   holder_name: { icon: User, label: 'Holder Name' },
   card_number: { icon: Hash, label: 'Card Number' },
+  place_of_birth: { icon: Globe, label: 'Place of Birth' },
+  place_of_issue: { icon: MapPin, label: 'Place of Issue' },
+  mobile_number: { icon: Phone, label: 'Mobile Number' },
 }
 
 const DOC_FIELDS = {
-  passport: ['document_type', 'passport_number', 'name', 'dob', 'nationality', 'gender', 'issue_date', 'expiry_date'],
+  passport: ['document_type', 'passport_number', 'name', 'dob', 'nationality', 'gender', 'issue_date', 'expiry_date', 'place_of_birth', 'place_of_issue', 'address'],
   pan_card: ['document_type', 'pan_number', 'name', 'father_name', 'dob'],
-  aadhaar_card: ['document_type', 'aadhaar_number', 'name', 'dob', 'gender', 'address'],
+  aadhaar_card: ['document_type', 'aadhaar_number', 'name', 'dob', 'gender', 'address', 'mobile_number'],
   invoice: ['document_type', 'invoice_number', 'name', 'vendor', 'date', 'total_amount'],
   bill: ['document_type', 'bill_number', 'vendor', 'date', 'total_amount', 'name'],
   resume: ['document_type', 'name', 'email', 'phone', 'skills', 'education', 'experience_summary'],

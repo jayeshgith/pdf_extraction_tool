@@ -9,9 +9,9 @@ if openai_api_key:
     client = OpenAI(api_key=openai_api_key)
 
 DOC_TYPES = {
-    "passport": ["document_type", "passport_number", "name", "dob", "nationality", "gender", "issue_date", "expiry_date"],
+    "passport": ["document_type", "passport_number", "name", "dob", "nationality", "gender", "issue_date", "expiry_date", "place_of_birth", "place_of_issue", "address"],
     "pan_card": ["document_type", "pan_number", "name", "father_name", "dob"],
-    "aadhaar_card": ["document_type", "aadhaar_number", "name", "dob", "gender", "address"],
+    "aadhaar_card": ["document_type", "aadhaar_number", "name", "dob", "gender", "address", "mobile_number"],
     "invoice": ["document_type", "invoice_number", "name", "vendor", "date", "total_amount"],
     "bill": ["document_type", "bill_number", "vendor", "date", "total_amount", "name"],
     "resume": ["document_type", "name", "email", "phone", "skills", "education", "experience_summary"],
@@ -41,6 +41,10 @@ DOC_NUM_RE = r"(?:document\s*(?:no|number|#|\.)?\s*[:\-]\s*)([A-Z0-9\-]+)"
 HOLDER_NAME_RE = r"(?:holder\s*(?:name)?|card\s*holder|cardholder|account\s*holder)\s*[:\-]\s*([A-Za-z\s\.'\-]+?)(?:\n|$)"
 CARD_NUM_RE = r"(?:card\s*(?:no|number|#|\.)?|account\s*(?:no|number|#|\.)?|member\s*(?:no|number)?)\s*[:\-]\s*([A-Z0-9\-/\s]{8,20})"
 ADDRESS_FALLBACK_RE = r"((?:door|street|road|colony|sector|phase|block|house|building|apt|flat|village|city|town|district|state|pincode|pin\s*code)[,\s]*[\w\s,\.\-/#]+(?:\n|$))"
+
+PLACE_OF_BIRTH_RE = r"(?:place\s*of\s*birth|pob|birth\s*place)\s*[:\-]\s*([A-Za-z\s\.'\-]+?)(?:\n|$)"
+PLACE_OF_ISSUE_RE = r"(?:place\s*of\s*issue|poi|issue\s*place)\s*[:\-]\s*([A-Za-z\s\.'\-]+?)(?:\n|$)"
+MOBILE_RE = r"(?:mobile|phone|contact|mobile\s*number|phone\s*number|telephone)\s*[:\-]\s*(\+?\d[\d\s\-()]{7,15})"
 
 PAN_CLEAN_RE = re.compile(r"[^A-Z0-9]")
 LABEL_EXCLUDE = r"(pan|permanent|account|number|income|tax|govt|india|date|birth|father|mother|signature|name|gender|address|dob|issue|expiry|nationality|phone|email|holder|card|aadhaar|uidai|resident)"
@@ -97,6 +101,9 @@ def extract_fields_rule_based(raw_text, doc_type):
         fields["gender"] = get(GENDER_RE)
         fields["issue_date"] = get(ISSUE_RE)
         fields["expiry_date"] = get(EXPIRY_RE)
+        fields["place_of_birth"] = get(PLACE_OF_BIRTH_RE)
+        fields["place_of_issue"] = get(PLACE_OF_ISSUE_RE)
+        fields["address"] = get(ADDRESS_RE)
         if not fields.get("name"):
             m = re.search(r"(?:mr\.|mrs\.|ms\.|shri|smt)\s+([A-Z][A-Za-z\s]+?)(?:\n|$)", raw_text, re.IGNORECASE)
             if m:
@@ -169,6 +176,7 @@ def extract_fields_rule_based(raw_text, doc_type):
             m = re.search(r"([A-Za-z0-9\s,.\-/#]{10,})", raw_text)
             if m and len(m.group(1).strip()) > 15:
                 fields["address"] = m.group(1).strip()[:200]
+        fields["mobile_number"] = get(MOBILE_RE) or get(PHONE_RE)
 
     elif doc_type in ("invoice", "bill"):
         fields["invoice_number"] = get(INVOICE_RE)
