@@ -4,14 +4,15 @@ import uuid
 from pathlib import Path
 from datetime import datetime, timezone
 from urllib.parse import quote_plus
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query, BackgroundTasks, Depends
 from pymongo import MongoClient
 from bson import ObjectId
 
 from services.ocr import extract_text
 from services.ai_extractor import extract_fields
+from routes.auth import get_current_user
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 ALLOWED_TYPES = {
     "image/jpeg": ".jpg",
@@ -59,7 +60,7 @@ def get_upload_dir():
 
 
 @router.post("/upload")
-async def upload_document(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
+async def upload_document(file: UploadFile = File(...), background_tasks: BackgroundTasks = None, user_email: str = Depends(get_current_user)):
     if file.content_type not in ALLOWED_TYPES:
         raise HTTPException(
             status_code=400,
@@ -82,6 +83,7 @@ async def upload_document(file: UploadFile = File(...), background_tasks: Backgr
 
     db = get_db()
     doc = {
+        "user_id": user_email,
         "original_name": file.filename,
         "file_path": file_url,
         "file_type": file.content_type,
@@ -145,13 +147,14 @@ def process_document(doc_id: str, file_path: str):
 
 
 @router.get("/documents")
-async def list_documents(page: int = Query(1, ge=1), limit: int = Query(10, ge=1, le=50)):
+async def list_documents(page: int = Query(1, ge=1), limit: int = Query(10, ge=1, le=50), user_email: str = Depends(get_current_user)):
     db = get_db()
-    total = db.documents.count_documents({})
+    query = {"user_id": user_email}
+    total = db.documents.count_documents(query)
     total_pages = max(1, (total + limit - 1) // limit)
 
     cursor = (
-        db.documents.find()
+        db.documents.find(query)
         .sort("created_at", -1)
         .skip((page - 1) * limit)
         .limit(limit)
@@ -171,10 +174,10 @@ async def list_documents(page: int = Query(1, ge=1), limit: int = Query(10, ge=1
 
 
 @router.get("/documents/{doc_id}")
-async def get_document(doc_id: str):
+async def get_document(doc_id: str, user_email: str = Depends(get_current_user)):
     db = get_db()
     try:
-        doc = db.documents.find_one({"_id": ObjectId(doc_id)})
+        doc = db.documents.find_one({"_id": ObjectId(doc_id), "user_id": user_email})
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid document ID")
 
@@ -186,14 +189,14 @@ async def get_document(doc_id: str):
 
 
 @router.put("/documents/{doc_id}")
-async def update_document(doc_id: str, data: dict):
+async def update_document(doc_id: str, data: dict, user_email: str = Depends(get_current_user)):
     db = get_db()
     try:
         obj_id = ObjectId(doc_id)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid document ID")
 
-    existing = db.documents.find_one({"_id": obj_id})
+    existing = db.documents.find_one({"_id": obj_id, "user_id": user_email})
     if not existing:
         raise HTTPException(status_code=404, detail="Document not found")
 
@@ -213,14 +216,14 @@ async def update_document(doc_id: str, data: dict):
 
 
 @router.delete("/documents/{doc_id}")
-async def delete_document(doc_id: str):
+async def delete_document(doc_id: str, user_email: str = Depends(get_current_user)):
     db = get_db()
     try:
         obj_id = ObjectId(doc_id)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid document ID")
 
-    doc = db.documents.find_one({"_id": obj_id})
+    doc = db.documents.find_one({"_id": obj_id, "user_id": user_email})
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 

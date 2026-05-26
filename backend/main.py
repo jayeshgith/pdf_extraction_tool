@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 load_dotenv()
 
 from routes.documents import router as documents_router
+from routes.auth import router as auth_router
 
 app = FastAPI(
     title="DocuVerse — AI Document Extraction API",
@@ -27,7 +28,8 @@ BASE_DIR = Path(__file__).parent
 UPLOAD_DIR = os.environ.get("UPLOAD_DIR", str(BASE_DIR / "uploads"))
 Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
 
-app.include_router(documents_router, prefix="/api")
+app.include_router(documents_router)
+app.include_router(auth_router)
 
 
 @app.get("/uploads/{file_path:path}")

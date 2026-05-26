@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  Upload, FileText, Database, Menu, X, Sparkles, ChevronLeft,
+  Upload, FileText, Database, Menu, X, Sparkles, ChevronLeft, LogOut, User,
 } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 
 const navItems = [
   { path: '/upload', label: 'Upload', icon: Upload },
@@ -10,6 +11,7 @@ const navItems = [
 ]
 
 export default function Layout({ children }) {
+  const { user, logout } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
@@ -100,10 +102,21 @@ export default function Layout({ children }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1e293b] rounded-lg">
-              <div className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
-              <span className="text-xs text-[#94a3b8] hidden md:inline">System Online</span>
-            </div>
+            {user && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1e293b] rounded-lg">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#6366f1] to-[#0ea5e9] flex items-center justify-center text-xs font-bold text-white">
+                  {user.name?.charAt(0)?.toUpperCase() || '?'}
+                </div>
+                <span className="text-xs text-[#94a3b8] hidden md:inline">{user.name}</span>
+              </div>
+            )}
+            <button
+              onClick={logout}
+              className="p-2 text-[#94a3b8] hover:text-[#ef4444] transition-colors"
+              title="Sign Out"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </header>
         <div className="flex-1 overflow-auto p-4 md:p-6">

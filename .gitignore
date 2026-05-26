@@ -5,6 +5,14 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+*.egg-info/
 backend/uploads/
+ai_system_tool/backend/uploads/
+.vite/
+.vite/deps/
+ai_system_tool/frontend/.vite/
 *.log
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/

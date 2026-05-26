@@ -5,9 +5,20 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('token')
+    }
     const msg = err.response?.data?.detail || err.message || 'Something went wrong'
     return Promise.reject(new Error(msg))
   },
@@ -30,5 +41,9 @@ export const listDocuments = (page = 1, limit = 10) =>
 export const deleteDocument = (id) => api.delete(`/documents/${id}`)
 
 export const updateDocument = (id, data) => api.put(`/documents/${id}`, data)
+
+export const forgotPassword = (email) => api.post('/auth/forgot-password', { email })
+
+export const resetPassword = (token, password) => api.post('/auth/reset-password', { token, password })
 
 export default api
