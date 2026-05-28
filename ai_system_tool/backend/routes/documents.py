@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from urllib.parse import quote_plus
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query, BackgroundTasks, Depends
 from pymongo import MongoClient
-from pymongo import gridfs
+from pymongo.gridfs import GridFS
 from bson import ObjectId
 
 from services.ocr import extract_text
@@ -57,7 +57,7 @@ def get_fs():
     global _fs
     if _fs is not None:
         return _fs
-    _fs = gridfs.GridFS(get_db())
+    _fs = GridFS(get_db())
     return _fs
 
 
