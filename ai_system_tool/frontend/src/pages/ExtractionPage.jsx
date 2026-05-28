@@ -8,7 +8,10 @@ import {
 } from 'lucide-react'
 import { getDocument, updateDocument } from '../services/api'
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString()
 
 const fieldMeta = {
   document_type: { icon: FileText, label: 'Document Type' },
