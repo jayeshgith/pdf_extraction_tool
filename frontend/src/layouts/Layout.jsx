@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  Upload, FileText, Database, Menu, X, Sparkles, ChevronLeft, LogOut, User,
+  Upload, FileText, Database, Menu, X, Sparkles, ChevronLeft, LogOut, User, MessageSquare,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 const navItems = [
   { path: '/upload', label: 'Upload', icon: Upload },
   { path: '/documents', label: 'Documents', icon: FileText },
+  { path: '/chat', label: 'Chat', icon: MessageSquare },
 ]
 
 export default function Layout({ children }) {

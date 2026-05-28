@@ -46,4 +46,6 @@ export const forgotPassword = (email) => api.post('/auth/forgot-password', { ema
 
 export const resetPassword = (token, password) => api.post('/auth/reset-password', { token, password })
 
+export const askQuestion = (docId, question) => api.post(`/chat/${docId}`, { question })
+
 export default api

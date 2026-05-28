@@ -9,6 +9,7 @@ load_dotenv()
 
 from routes.documents import router as documents_router
 from routes.auth import router as auth_router
+from routes.chat import router as chat_router
 
 app = FastAPI(
     title="DocuVerse — AI Document Extraction API",
@@ -30,6 +31,7 @@ Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
 
 app.include_router(documents_router, prefix="/api")
 app.include_router(auth_router)
+app.include_router(chat_router)
 
 
 @app.get("/uploads/{file_path:path}")
