@@ -7,7 +7,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pymongo import MongoClient
-from pymongo.gridfs import GridFS
 from bson import ObjectId
 
 load_dotenv()
@@ -36,7 +35,6 @@ app.include_router(chat_router)
 
 _db_client = None
 _db = None
-_fs = None
 
 
 def get_db():
@@ -59,31 +57,23 @@ def get_db():
     return _db
 
 
-def get_fs():
-    global _fs
-    if _fs is not None:
-        return _fs
-    _fs = GridFS(get_db())
-    return _fs
-
-
-@app.get("/gridfs/{file_id}")
-async def serve_gridfs(file_id: str):
+@app.get("/files/{file_id}")
+async def serve_file(file_id: str):
     try:
         obj_id = ObjectId(file_id)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid file ID")
-    fs = get_fs()
-    try:
-        gridfs_file = fs.get(obj_id)
-    except Exception:
+    db = get_db()
+    file_doc = db.files.find_one({"_id": obj_id})
+    if not file_doc:
         raise HTTPException(status_code=404, detail="File not found")
-    content_type = gridfs_file.content_type or "application/octet-stream"
+    content_type = file_doc.get("content_type", "application/octet-stream")
+    filename = file_doc.get("filename", "file")
     return StreamingResponse(
-        gridfs_file,
+        [file_doc["data"]],
         media_type=content_type,
         headers={
-            "Content-Disposition": f'inline; filename="{gridfs_file.filename}"',
+            "Content-Disposition": f'inline; filename="{filename}"',
             "Access-Control-Allow-Origin": "*",
         },
     )

@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from urllib.parse import quote_plus
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query, BackgroundTasks, Depends
 from pymongo import MongoClient
-from pymongo.gridfs import GridFS
 from bson import ObjectId
 
 from services.ocr import extract_text
@@ -25,7 +24,6 @@ MAX_SIZE = 10 * 1024 * 1024
 
 _db_client = None
 _db = None
-_fs = None
 
 
 def get_db():
@@ -53,14 +51,6 @@ def get_db():
     return _db
 
 
-def get_fs():
-    global _fs
-    if _fs is not None:
-        return _fs
-    _fs = GridFS(get_db())
-    return _fs
-
-
 @router.post("/upload")
 async def upload_document(file: UploadFile = File(...), background_tasks: BackgroundTasks = None, user_email: str = Depends(get_current_user)):
     if file.content_type not in ALLOWED_TYPES:
@@ -73,12 +63,17 @@ async def upload_document(file: UploadFile = File(...), background_tasks: Backgr
     if len(content) > MAX_SIZE:
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 10MB.")
 
-    fs = get_fs()
-    gridfs_id = fs.put(content, filename=file.filename, content_type=file.content_type)
-
-    file_url = f"/gridfs/{gridfs_id}"
-
     db = get_db()
+    file_doc = {
+        "data": content,
+        "content_type": file.content_type,
+        "filename": file.filename,
+        "uploaded_at": datetime.now(timezone.utc),
+    }
+    file_result = db.files.insert_one(file_doc)
+    file_id = str(file_result.inserted_id)
+    file_url = f"/files/{file_id}"
+
     doc = {
         "user_id": user_email,
         "original_name": file.filename,
@@ -99,19 +94,21 @@ async def upload_document(file: UploadFile = File(...), background_tasks: Backgr
     doc["_id"] = str(result.inserted_id)
 
     if background_tasks:
-        background_tasks.add_task(process_document, doc["_id"], str(gridfs_id))
+        background_tasks.add_task(process_document, doc["_id"], file_id)
 
     return doc
 
 
-def process_document(doc_id: str, gridfs_id: str):
+def process_document(doc_id: str, file_id: str):
     tmp = None
     try:
-        fs = get_fs()
-        gridfs_file = fs.get(ObjectId(gridfs_id))
-        content = gridfs_file.read()
+        db = get_db()
+        file_doc = db.files.find_one({"_id": ObjectId(file_id)})
+        if not file_doc:
+            raise FileNotFoundError("File not found in database")
+        content = file_doc["data"]
 
-        ext = Path(gridfs_file.filename).suffix if gridfs_file.filename else ".tmp"
+        ext = Path(file_doc.get("filename", "file.tmp")).suffix or ".tmp"
         with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp_file:
             tmp_file.write(content)
             tmp = tmp_file.name
@@ -238,9 +235,9 @@ async def delete_document(doc_id: str, user_email: str = Depends(get_current_use
         raise HTTPException(status_code=404, detail="Document not found")
 
     file_path = doc.get("file_path", "")
-    if file_path.startswith("/gridfs/"):
+    if file_path.startswith("/files/"):
         try:
-            get_fs().delete(ObjectId(file_path.split("/gridfs/")[1]))
+            db.files.delete_one({"_id": ObjectId(file_path.split("/files/")[1])})
         except Exception:
             pass
 
