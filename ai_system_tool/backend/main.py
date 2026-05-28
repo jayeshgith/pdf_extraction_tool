@@ -5,7 +5,7 @@ from urllib.parse import quote_plus
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response
 from pymongo import MongoClient
 from bson import ObjectId
 
@@ -69,12 +69,14 @@ async def serve_file(file_id: str):
         raise HTTPException(status_code=404, detail="File not found")
     content_type = file_doc.get("content_type", "application/octet-stream")
     filename = file_doc.get("filename", "file")
-    return StreamingResponse(
-        [file_doc["data"]],
+    data = file_doc["data"]
+    return Response(
+        content=data,
         media_type=content_type,
         headers={
             "Content-Disposition": f'inline; filename="{filename}"',
-            "Access-Control-Allow-Origin": "*",
+            "Content-Length": str(len(data)),
+            "Accept-Ranges": "bytes",
         },
     )
 
