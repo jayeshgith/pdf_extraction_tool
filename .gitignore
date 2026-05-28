@@ -6,11 +6,12 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
-backend/uploads/
+# Uploads
 ai_system_tool/backend/uploads/
-.vite/
-.vite/deps/
+
+# Vite cache
 ai_system_tool/frontend/.vite/
+.vite/
 *.log
 .DS_Store
 Thumbs.db
