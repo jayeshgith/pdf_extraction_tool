@@ -89,6 +89,19 @@ async def serve_gridfs(file_id: str):
     )
 
 
+@app.get("/uploads/{file_path:path}")
+async def serve_upload_legacy(file_path: str):
+    full_path = Path(__file__).parent / "uploads" / file_path
+    if not full_path.exists() or not full_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    from fastapi.responses import FileResponse
+    return FileResponse(str(full_path), headers={
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "*",
+    })
+
+
 @app.get("/api/health")
 async def health_check():
     from services.ocr import tesseract_available, tesseract_cmd
@@ -97,5 +110,4 @@ async def health_check():
         "service": "DocuVerse API",
         "tesseract_installed": tesseract_available,
         "tesseract_path": tesseract_cmd if os.path.exists(tesseract_cmd) else "not found",
-        "upload_dir": UPLOAD_DIR,
     }
