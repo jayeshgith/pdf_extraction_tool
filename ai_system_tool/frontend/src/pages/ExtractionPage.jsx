@@ -159,8 +159,8 @@ export default function ExtractionPage() {
     ? `${(import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '')}${doc.file_path}`
     : doc.file_path
 
-  const isPdf = fileUrl?.endsWith('.pdf')
-  const isImage = fileUrl?.match(/\.(jpg|jpeg|png|webp)$/i)
+  const isPdf = doc.file_type === 'application/pdf'
+  const isImage = doc.file_type?.startsWith('image/')
 
   return (
     <div className="space-y-6">

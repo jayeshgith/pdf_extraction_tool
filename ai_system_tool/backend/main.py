@@ -1,9 +1,14 @@
 import os
+import re
 from pathlib import Path
+from urllib.parse import quote_plus
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
+from pymongo import MongoClient
+from pymongo import gridfs
+from bson import ObjectId
 
 load_dotenv()
 
@@ -25,25 +30,63 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = Path(__file__).parent
-UPLOAD_DIR = os.environ.get("UPLOAD_DIR", str(BASE_DIR / "uploads"))
-Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
-
 app.include_router(documents_router, prefix="/api")
 app.include_router(auth_router)
 app.include_router(chat_router)
 
+_db_client = None
+_db = None
+_fs = None
 
-@app.get("/uploads/{file_path:path}")
-async def serve_upload(file_path: str):
-    full_path = Path(UPLOAD_DIR) / file_path
-    if not full_path.exists() or not full_path.is_file():
+
+def get_db():
+    global _db_client, _db
+    if _db is not None:
+        return _db
+    mongodb_url = os.environ.get("MONGODB_URL", "mongodb://localhost:27017")
+    db_name = os.environ.get("DATABASE_NAME", "docuverse")
+    match = re.match(r"(mongodb\+srv://)([^:]+):([^@]+)@(.+)", mongodb_url)
+    if match:
+        prefix, username, password, rest = match.groups()
+        mongodb_url = f"{prefix}{quote_plus(username)}:{quote_plus(password)}@{rest}"
+    _db_client = MongoClient(
+        mongodb_url,
+        serverSelectionTimeoutMS=30000,
+        tls=True,
+        tlsAllowInvalidCertificates=True,
+    )
+    _db = _db_client[db_name]
+    return _db
+
+
+def get_fs():
+    global _fs
+    if _fs is not None:
+        return _fs
+    _fs = gridfs.GridFS(get_db())
+    return _fs
+
+
+@app.get("/gridfs/{file_id}")
+async def serve_gridfs(file_id: str):
+    try:
+        obj_id = ObjectId(file_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid file ID")
+    fs = get_fs()
+    try:
+        gridfs_file = fs.get(obj_id)
+    except Exception:
         raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(str(full_path), headers={
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "*",
-    })
+    content_type = gridfs_file.content_type or "application/octet-stream"
+    return StreamingResponse(
+        gridfs_file,
+        media_type=content_type,
+        headers={
+            "Content-Disposition": f'inline; filename="{gridfs_file.filename}"',
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
 
 
 @app.get("/api/health")

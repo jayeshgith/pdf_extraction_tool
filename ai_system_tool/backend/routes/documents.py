@@ -1,11 +1,12 @@
 import os
 import re
-import uuid
+import tempfile
 from pathlib import Path
 from datetime import datetime, timezone
 from urllib.parse import quote_plus
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query, BackgroundTasks, Depends
 from pymongo import MongoClient
+from pymongo import gridfs
 from bson import ObjectId
 
 from services.ocr import extract_text
@@ -22,10 +23,9 @@ ALLOWED_TYPES = {
 }
 MAX_SIZE = 10 * 1024 * 1024
 
-BASE_DIR = Path(__file__).parent.parent
-
 _db_client = None
 _db = None
+_fs = None
 
 
 def get_db():
@@ -53,10 +53,12 @@ def get_db():
     return _db
 
 
-def get_upload_dir():
-    upload_dir = os.environ.get("UPLOAD_DIR", str(BASE_DIR / "uploads"))
-    Path(upload_dir).mkdir(parents=True, exist_ok=True)
-    return upload_dir
+def get_fs():
+    global _fs
+    if _fs is not None:
+        return _fs
+    _fs = gridfs.GridFS(get_db())
+    return _fs
 
 
 @router.post("/upload")
@@ -71,15 +73,10 @@ async def upload_document(file: UploadFile = File(...), background_tasks: Backgr
     if len(content) > MAX_SIZE:
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 10MB.")
 
-    ext = ALLOWED_TYPES[file.content_type]
-    unique_name = f"{uuid.uuid4().hex}{ext}"
-    upload_dir = get_upload_dir()
-    file_path = os.path.join(upload_dir, unique_name)
+    fs = get_fs()
+    gridfs_id = fs.put(content, filename=file.filename, content_type=file.content_type)
 
-    with open(file_path, "wb") as f:
-        f.write(content)
-
-    file_url = f"/uploads/{unique_name}"
+    file_url = f"/gridfs/{gridfs_id}"
 
     db = get_db()
     doc = {
@@ -102,14 +99,24 @@ async def upload_document(file: UploadFile = File(...), background_tasks: Backgr
     doc["_id"] = str(result.inserted_id)
 
     if background_tasks:
-        background_tasks.add_task(process_document, doc["_id"], file_path)
+        background_tasks.add_task(process_document, doc["_id"], str(gridfs_id))
 
     return doc
 
 
-def process_document(doc_id: str, file_path: str):
+def process_document(doc_id: str, gridfs_id: str):
+    tmp = None
     try:
-        raw_text = extract_text(file_path)
+        fs = get_fs()
+        gridfs_file = fs.get(ObjectId(gridfs_id))
+        content = gridfs_file.read()
+
+        ext = Path(gridfs_file.filename).suffix if gridfs_file.filename else ".tmp"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp_file:
+            tmp_file.write(content)
+            tmp = tmp_file.name
+
+        raw_text = extract_text(tmp)
         extracted_data, confidence_scores, overall_confidence = extract_fields(raw_text)
         status = "completed" if extracted_data else "failed"
         error_message = None
@@ -127,6 +134,9 @@ def process_document(doc_id: str, file_path: str):
         overall_confidence = 0.0
         status = "failed"
         error_message = f"Extraction error: {str(e)}"
+    finally:
+        if tmp and os.path.exists(tmp):
+            os.unlink(tmp)
 
     try:
         db = get_db()
@@ -227,8 +237,12 @@ async def delete_document(doc_id: str, user_email: str = Depends(get_current_use
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    if os.path.exists(doc.get("file_path", "")):
-        os.remove(doc["file_path"])
+    file_path = doc.get("file_path", "")
+    if file_path.startswith("/gridfs/"):
+        try:
+            get_fs().delete(ObjectId(file_path.split("/gridfs/")[1]))
+        except Exception:
+            pass
 
     db.documents.delete_one({"_id": obj_id})
 
