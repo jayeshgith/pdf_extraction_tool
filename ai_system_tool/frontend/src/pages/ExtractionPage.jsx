@@ -83,29 +83,43 @@ export default function ExtractionPage() {
   useEffect(() => {
     if (!id) return
     let cancelled = false
+    let pollTimer = null
+    const POLL_TIMEOUT = 120000
+    const startTime = Date.now()
 
-    const fetchDoc = () =>
+    const fetchDoc = () => {
+      if (cancelled) return
       getDocument(id)
         .then((res) => {
           if (cancelled) return
           setDoc(res.data)
           setEditedFields(res.data.extracted_data || {})
+          setLoading(false)
           if (res.data.status === 'processing') {
+            if (Date.now() - startTime > POLL_TIMEOUT) {
+              setProcessing(false)
+              setError('Extraction timed out after 2 minutes. Please try again.')
+              return
+            }
             setProcessing(true)
-            setTimeout(fetchDoc, 2000)
+            pollTimer = setTimeout(fetchDoc, 2000)
           } else {
             setProcessing(false)
           }
         })
         .catch((err) => {
-          if (!cancelled) setError(err.message)
+          if (!cancelled) {
+            setError(err.message)
+            setLoading(false)
+          }
         })
-        .finally(() => {
-          if (!cancelled) setLoading(false)
-        })
+    }
 
     fetchDoc()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      if (pollTimer) clearTimeout(pollTimer)
+    }
   }, [id])
 
   const handleSave = async () => {
@@ -286,7 +300,16 @@ export default function ExtractionPage() {
             <h3 className="text-[#f1f5f9] font-medium text-sm">Extracted Fields</h3>
           </div>
           <div className="p-4 space-y-3 max-h-[500px] overflow-y-auto">
-            {relevantKeys.map((key) => {
+            {processing ? (
+              <div className="text-center py-12 space-y-4">
+                <div className="relative mx-auto w-16 h-16">
+                  <div className="absolute inset-0 border-4 border-[#1e293b] rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-transparent border-t-[#6366f1] rounded-full animate-spin"></div>
+                </div>
+                <p className="text-[#f1f5f9] text-sm font-medium">Processing your document...</p>
+                <p className="text-[#64748b] text-xs">Extracting text and identifying fields</p>
+              </div>
+            ) : relevantKeys.map((key) => {
               const meta = fieldMeta[key]
               if (!meta) return null
               const Icon = meta.icon
@@ -321,12 +344,6 @@ export default function ExtractionPage() {
                 </div>
               )
             })}
-            {processing && (
-              <div className="text-center py-8 space-y-3">
-                <Loader2 size={32} className="animate-spin text-[#6366f1] mx-auto" />
-                <p className="text-[#94a3b8] text-sm">Extracting fields from document...</p>
-              </div>
-            )}
             {!processing && relevantKeys.every((k) => !fields[k]) && (
               <div className="text-center py-8 space-y-3">
                 <AlertCircle size={32} className="text-[#f59e0b] mx-auto" />
