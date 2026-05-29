@@ -84,7 +84,7 @@ export default function ExtractionPage() {
     if (!id) return
     let cancelled = false
     let pollTimer = null
-    const POLL_TIMEOUT = 120000
+    const POLL_TIMEOUT = 300000
     const startTime = Date.now()
 
     const fetchDoc = () => {
@@ -98,7 +98,7 @@ export default function ExtractionPage() {
           if (res.data.status === 'processing') {
             if (Date.now() - startTime > POLL_TIMEOUT) {
               setProcessing(false)
-              setError('Extraction timed out after 2 minutes. Please try again.')
+              setError('Extraction took too long. Check backend terminal for ⏱️ logs to see what is slow.')
               return
             }
             setProcessing(true)
