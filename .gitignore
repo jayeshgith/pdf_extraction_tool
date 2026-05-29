@@ -17,3 +17,5 @@ ai_system_tool/frontend/.vite/
 Thumbs.db
 .vscode/
 .idea/
+
+ai_system_tool/backend/
