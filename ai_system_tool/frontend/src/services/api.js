@@ -48,4 +48,23 @@ export const resetPassword = (token, password) => api.post('/auth/reset-password
 
 export const askQuestion = (docId, question) => api.post(`/chat/${docId}`, { question })
 
+export const listDocumentConfigs = () => api.get('/admin/document-configs')
+
+export const getDocumentConfig = (docType) => api.get(`/admin/document-configs/${docType}`)
+
+export const createDocumentConfig = (data) => api.post('/admin/document-configs', data)
+
+export const updateDocumentConfig = (docType, data) => api.put(`/admin/document-configs/${docType}`, data)
+
+export const deleteDocumentConfig = (docType) => api.delete(`/admin/document-configs/${docType}`)
+
+export const uploadBulkDocuments = (files, onProgress) => {
+  const form = new FormData()
+  files.forEach((f) => form.append('files', f))
+  return api.post('/upload/bulk', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress: onProgress,
+  })
+}
+
 export default api
