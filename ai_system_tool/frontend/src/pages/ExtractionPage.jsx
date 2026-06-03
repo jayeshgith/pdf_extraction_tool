@@ -5,6 +5,7 @@ import {
   ArrowLeft, Save, Edit2, Check, X, Loader2, AlertCircle,
   Fingerprint, User, Calendar, Globe, Hash, MapPin, FileText,
   Mail, Phone, BookOpen, Briefcase, DollarSign, Building,
+  ZoomIn, ZoomOut, RotateCcw,
 } from 'lucide-react'
 import { getDocument, updateDocument } from '../services/api'
 
@@ -79,6 +80,11 @@ export default function ExtractionPage() {
   const [numPages, setNumPages] = useState(null)
   const [pageNum, setPageNum] = useState(1)
   const [showRaw, setShowRaw] = useState(false)
+  const [scale, setScale] = useState(1)
+
+  const zoomIn = () => setScale((s) => Math.min(4, +(s + 0.25).toFixed(2)))
+  const zoomOut = () => setScale((s) => Math.max(0.25, +(s - 0.25).toFixed(2)))
+  const zoomReset = () => setScale(1)
 
   useEffect(() => {
     if (!id) return
@@ -233,15 +239,56 @@ export default function ExtractionPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden">
           <div className="p-4 border-b border-[#1e293b]">
-            <h3 className="text-[#f1f5f9] font-medium text-sm">Document Preview</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-[#f1f5f9] font-medium text-sm">Document Preview</h3>
+              {(isImage || isPdf) && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={zoomOut}
+                    disabled={scale <= 0.25}
+                    className="p-1.5 rounded-lg text-[#64748b] hover:text-[#f1f5f9] hover:bg-[#1e293b] transition-colors disabled:opacity-30"
+                    title="Zoom Out"
+                  >
+                    <ZoomOut size={16} />
+                  </button>
+                  <button
+                    onClick={zoomReset}
+                    className="px-2 py-1 rounded-lg text-xs font-medium text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-[#1e293b] transition-colors min-w-[48px] text-center"
+                    title="Reset Zoom"
+                  >
+                    {Math.round(scale * 100)}%
+                  </button>
+                  <button
+                    onClick={zoomIn}
+                    disabled={scale >= 4}
+                    className="p-1.5 rounded-lg text-[#64748b] hover:text-[#f1f5f9] hover:bg-[#1e293b] transition-colors disabled:opacity-30"
+                    title="Zoom In"
+                  >
+                    <ZoomIn size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="p-4 flex flex-col items-center justify-center min-h-[400px] bg-[#020617]">
+          <div
+            className="p-4 flex flex-col items-center justify-center min-h-[400px] bg-[#020617] overflow-auto"
+            onWheel={(e) => {
+              if (e.ctrlKey || e.metaKey) {
+                e.preventDefault()
+                if (e.deltaY < 0) zoomIn()
+                else zoomOut()
+              }
+            }}
+          >
             {isImage ? (
-              <img
-                src={fileUrl}
-                alt="Document"
-                className="max-w-full max-h-[500px] rounded-lg object-contain"
-              />
+              <div className="inline-flex items-start justify-center transition-transform duration-200">
+                <img
+                  src={fileUrl}
+                  alt="Document"
+                  style={{ transform: `scale(${scale})`, transformOrigin: 'center top' }}
+                  className="rounded-lg object-contain"
+                />
+              </div>
             ) : isPdf ? (
               <div className="w-full flex flex-col items-center">
                 <Document
@@ -258,10 +305,10 @@ export default function ExtractionPage() {
                 >
                   <Page
                     pageNumber={pageNum}
+                    scale={scale}
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
                     className="max-w-full"
-                    width={Math.min(500, window.innerWidth - 100)}
                   />
                 </Document>
                 {numPages > 1 && (
