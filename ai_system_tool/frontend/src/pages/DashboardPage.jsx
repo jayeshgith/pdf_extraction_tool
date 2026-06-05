@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  FileText, CheckCircle2, AlertTriangle, RefreshCw, BarChart3,
-  Search, Eye, Trash2, ChevronLeft, ChevronRight, Clock,
-  TrendingUp, Award, Layers, Sparkles, LayoutGrid
+  CheckCircle2, RefreshCw, BarChart3,
+  Search, Eye, Trash2, ChevronLeft, ChevronRight,
+  TrendingUp, Award, Layers, Sparkles,
+  Filter, X, CalendarDays, ListOrdered
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -16,19 +17,27 @@ const statusColors = {
   completed: 'bg-[#22c55e]/10 text-[#22c55e] border-[#22c55e]/20',
   processing: 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20',
   failed: 'bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/20',
+  queued: 'bg-[#6366f1]/10 text-[#6366f1] border-[#6366f1]/20',
 }
 
 export default function DashboardPage() {
   const navigate = useNavigate()
   const [stats, setStats] = useState(null)
   const [statsLoading, setStatsLoading] = useState(true)
-  const [docs, setDocs] = useState([])
-  const [listLoading, setListLoading] = useState(true)
+  const [allDocs, setAllDocs] = useState([])
+  const [docsLoading, setDocsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
   const [deleting, setDeleting] = useState(null)
+  const [viewAll, setViewAll] = useState(false)
+
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [docTypeFilter, setDocTypeFilter] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+
+  const [page, setPage] = useState(1)
+  const pageSize = viewAll ? 10 : 5
 
   const loadDashboardData = async () => {
     setStatsLoading(true)
@@ -42,34 +51,34 @@ export default function DashboardPage() {
     }
   }
 
-  const fetchDocs = async () => {
-    setListLoading(true)
+  const fetchAllDocs = async () => {
+    setDocsLoading(true)
     setError('')
     try {
-      const res = await listDocuments(page, 5)
-      setDocs(res.data.documents || res.data || [])
-      setTotalPages(res.data.totalPages || 1)
+      const res = await listDocuments(1, 500)
+      setAllDocs(res.data.documents || res.data || [])
     } catch (err) {
       setError(err.message)
     } finally {
-      setListLoading(false)
+      setDocsLoading(false)
     }
   }
 
   useEffect(() => {
     loadDashboardData()
+    fetchAllDocs()
   }, [])
 
   useEffect(() => {
-    fetchDocs()
-  }, [page])
+    setPage(1)
+  }, [viewAll, search, statusFilter, docTypeFilter, dateFrom, dateTo])
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this document?")) return
     setDeleting(id)
     try {
       await deleteDocument(id)
-      setDocs((prev) => prev.filter((d) => d._id !== id))
+      setAllDocs((prev) => prev.filter((d) => d._id !== id))
       loadDashboardData()
     } catch (err) {
       setError(err.message)
@@ -78,12 +87,15 @@ export default function DashboardPage() {
     }
   }
 
-  const filteredDocs = search
-    ? docs.filter((d) =>
-        d.original_name?.toLowerCase().includes(search.toLowerCase()) ||
-        d.extracted_data?.name?.toLowerCase().includes(search.toLowerCase())
-      )
-    : docs
+  const clearFilters = () => {
+    setSearch('')
+    setStatusFilter('')
+    setDocTypeFilter('')
+    setDateFrom('')
+    setDateTo('')
+  }
+
+  const hasActiveFilters = search || statusFilter || docTypeFilter || dateFrom || dateTo
 
   const getDocType = (doc) => {
     return doc.extracted_data?.document_type || 'Unclassified'
@@ -97,19 +109,65 @@ export default function DashboardPage() {
     })
   }
 
+  const filteredDocs = useMemo(() => {
+    let result = [...allDocs]
+
+    if (search) {
+      const q = search.toLowerCase()
+      result = result.filter((d) =>
+        d.original_name?.toLowerCase().includes(q) ||
+        d.extracted_data?.name?.toLowerCase().includes(q)
+      )
+    }
+
+    if (statusFilter) {
+      result = result.filter((d) => d.status === statusFilter)
+    }
+
+    if (docTypeFilter) {
+      result = result.filter((d) => getDocType(d).toLowerCase() === docTypeFilter.toLowerCase())
+    }
+
+    if (dateFrom) {
+      const from = new Date(dateFrom)
+      result = result.filter((d) => d.created_at && new Date(d.created_at) >= from)
+    }
+
+    if (dateTo) {
+      const to = new Date(dateTo)
+      to.setHours(23, 59, 59, 999)
+      result = result.filter((d) => d.created_at && new Date(d.created_at) <= to)
+    }
+
+    result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+
+    return result
+  }, [allDocs, search, statusFilter, docTypeFilter, dateFrom, dateTo])
+
+  const totalPages = Math.max(1, Math.ceil(filteredDocs.length / pageSize))
+  const paginatedDocs = filteredDocs.slice((page - 1) * pageSize, page * pageSize)
+
   const pieData = stats?.typeCounts
     ? Object.keys(stats.typeCounts).map(key => ({ name: key, value: stats.typeCounts[key] }))
     : []
 
+  const uniqueDocTypes = useMemo(() => {
+    const types = new Set()
+    allDocs.forEach((d) => types.add(getDocType(d)))
+    return [...types].sort()
+  }, [allDocs])
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-[#f1f5f9] flex items-center gap-2">
-          <Sparkles className="text-[#6366f1]" size={24} /> Dashboard Overview
-        </h2>
-        <p className="text-[#64748b] text-sm mt-1">
-          Monitor your document extraction queues, success rates, and type distributions.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-[#f1f5f9] flex items-center gap-2">
+            <Sparkles className="text-[#6366f1]" size={24} /> Dashboard Overview
+          </h2>
+          <p className="text-[#64748b] text-sm mt-1">
+            Monitor your document extraction queues, success rates, and type distributions.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -245,22 +303,95 @@ export default function DashboardPage() {
       </div>
 
       <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h3 className="text-base font-semibold text-[#f1f5f9]">Recent Extractions</h3>
-            <p className="text-xs text-[#64748b]">Monitor queue states, verify details, or navigate to full previews</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div>
+              <h3 className="text-base font-semibold text-[#f1f5f9]">
+                {viewAll ? 'All Documents' : 'Recent Extractions'}
+              </h3>
+              <p className="text-xs text-[#64748b]">
+                {viewAll
+                  ? `${filteredDocs.length} document${filteredDocs.length !== 1 ? 's' : ''} found`
+                  : 'Monitor queue states, verify details, or navigate to full previews'}
+              </p>
+            </div>
+            <button
+              onClick={() => { setViewAll(!viewAll); setPage(1) }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                viewAll
+                  ? 'bg-[#6366f1]/10 text-[#6366f1] border-[#6366f1]/30'
+                  : 'bg-[#1e293b] text-[#94a3b8] border-[#1e293b] hover:border-[#6366f1]/50 hover:text-[#f1f5f9]'
+              }`}
+            >
+              <ListOrdered size={14} />
+              {viewAll ? 'Show Recent' : 'View All'}
+            </button>
           </div>
-          <div className="relative w-full md:w-64">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" />
+
+          <div className="relative w-full md:w-56">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" />
             <input
               type="text"
-              placeholder="Filter by name..."
+              placeholder="Search by name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-1.5 bg-[#0b0f19] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-xs placeholder-[#64748b] focus:outline-none focus:border-[#6366f1]"
             />
           </div>
         </div>
+
+        {viewAll && (
+          <div className="flex flex-wrap items-center gap-2 p-3 bg-[#0b0f19] border border-[#1e293b] rounded-lg">
+            <Filter size={14} className="text-[#64748b]" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-[#0f172a] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-xs px-2 py-1.5 focus:outline-none focus:border-[#6366f1]"
+            >
+              <option value="">All Statuses</option>
+              <option value="completed">Completed</option>
+              <option value="processing">Processing</option>
+              <option value="failed">Failed</option>
+              <option value="queued">Queued</option>
+            </select>
+            <select
+              value={docTypeFilter}
+              onChange={(e) => setDocTypeFilter(e.target.value)}
+              className="bg-[#0f172a] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-xs px-2 py-1.5 focus:outline-none focus:border-[#6366f1]"
+            >
+              <option value="">All Types</option>
+              {uniqueDocTypes.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            <div className="flex items-center gap-1 text-[#64748b]">
+              <CalendarDays size={13} />
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="bg-[#0f172a] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-xs px-2 py-1.5 w-32 focus:outline-none focus:border-[#6366f1]"
+                title="From date"
+              />
+              <span className="text-[#64748b]">—</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="bg-[#0f172a] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-xs px-2 py-1.5 w-32 focus:outline-none focus:border-[#6366f1]"
+                title="To date"
+              />
+            </div>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1 px-2 py-1.5 text-xs text-[#ef4444] hover:bg-[#ef4444]/10 rounded-lg transition-colors"
+              >
+                <X size={13} /> Clear
+              </button>
+            )}
+          </div>
+        )}
 
         {error && (
           <div className="p-3 bg-[#ef4444]/10 border border-[#ef4444]/20 rounded-lg text-[#ef4444] text-xs">
@@ -276,25 +407,27 @@ export default function DashboardPage() {
                 <th className="pb-3 font-medium">Doc Type</th>
                 <th className="pb-3 font-medium">Status</th>
                 <th className="pb-3 font-medium">Extracted Name</th>
-                <th className="pb-3 font-medium">Timestamp</th>
+                <th className="pb-3 font-medium">{viewAll ? 'Uploaded' : 'Timestamp'}</th>
                 <th className="pb-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {listLoading ? (
+              {docsLoading ? (
                 <tr>
                   <td colSpan={6} className="text-center py-8">
                     <RefreshCw className="animate-spin text-[#6366f1] mx-auto" size={20} />
                   </td>
                 </tr>
-              ) : filteredDocs.length === 0 ? (
+              ) : paginatedDocs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-8 text-xs text-[#64748b]">
-                    No recent files registered in database.
+                    {hasActiveFilters
+                      ? 'No documents match the current filters.'
+                      : 'No documents uploaded yet. Upload your first document to get started.'}
                   </td>
                 </tr>
               ) : (
-                filteredDocs.map((doc) => (
+                paginatedDocs.map((doc) => (
                   <tr key={doc._id} className="border-b border-[#1e293b] text-xs hover:bg-[#1e293b]/20 transition-colors">
                     <td className="py-3 font-medium text-[#f1f5f9] max-w-[150px] truncate">
                       {doc.original_name}
@@ -302,7 +435,7 @@ export default function DashboardPage() {
                     <td className="py-3 text-[#cbd5e1]">{getDocType(doc)}</td>
                     <td className="py-3">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${statusColors[doc.status] || statusColors.processing}`}>
-                        <span className={`w-1 h-1 rounded-full ${doc.status === 'processing' ? 'animate-pulse bg-[#f59e0b]' : doc.status === 'completed' ? 'bg-[#22c55e]' : 'bg-[#ef4444]'}`} />
+                        <span className={`w-1 h-1 rounded-full ${doc.status === 'processing' ? 'animate-pulse bg-[#f59e0b]' : doc.status === 'completed' ? 'bg-[#22c55e]' : doc.status === 'queued' ? 'bg-[#6366f1]' : 'bg-[#ef4444]'}`} />
                         {doc.status}
                       </span>
                     </td>
@@ -335,7 +468,7 @@ export default function DashboardPage() {
 
         {totalPages > 1 && (
           <div className="flex items-center justify-between pt-2">
-            <span className="text-[10px] text-[#64748b]">Page {page} of {totalPages}</span>
+            <span className="text-[10px] text-[#64748b]">Page {page} of {totalPages} ({filteredDocs.length} total)</span>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}

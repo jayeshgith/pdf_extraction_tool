@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  Upload, FileText, Database, Menu, X, Sparkles, ChevronLeft, LogOut, User, MessageSquare, Settings, Layers, LayoutGrid,
+  Upload, Database, Menu, X, Sparkles, ChevronLeft, LogOut, User, MessageSquare, Settings, Layers, LayoutGrid,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -9,7 +9,6 @@ const allNavItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutGrid, adminOnly: false },
   { path: '/upload', label: 'Upload', icon: Upload, adminOnly: false },
   { path: '/bulk', label: 'Bulk Upload', icon: Layers, adminOnly: false },
-  { path: '/documents', label: 'Documents', icon: FileText, adminOnly: false },
   { path: '/chat', label: 'Chat', icon: MessageSquare, adminOnly: false },
   { path: '/admin', label: 'Configs', icon: Settings, adminOnly: true },
 ]

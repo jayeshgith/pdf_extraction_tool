@@ -4,7 +4,6 @@ import Layout from './layouts/Layout'
 import DashboardPage from './pages/DashboardPage'
 import UploadPage from './pages/UploadPage'
 import ExtractionPage from './pages/ExtractionPage'
-import DocumentListPage from './pages/DocumentListPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
@@ -38,7 +37,6 @@ function App() {
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
       <Route path="/extraction/:id" element={<ProtectedRoute><ExtractionPage /></ProtectedRoute>} />
-      <Route path="/documents" element={<ProtectedRoute><DocumentListPage /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute><AdminConfigsPage /></ProtectedRoute>} />
       <Route path="/bulk" element={<ProtectedRoute><BulkUploadPage /></ProtectedRoute>} />
