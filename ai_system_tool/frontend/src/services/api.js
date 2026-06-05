@@ -67,4 +67,6 @@ export const uploadBulkDocuments = (files, onProgress) => {
   })
 }
 
+export const getDashboardStats = () => api.get('/documents/stats')
+
 export default api

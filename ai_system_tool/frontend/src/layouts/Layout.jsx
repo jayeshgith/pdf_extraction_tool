@@ -1,16 +1,17 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  Upload, FileText, Database, Menu, X, Sparkles, ChevronLeft, LogOut, User, MessageSquare, Settings, Layers,
+  Upload, FileText, Database, Menu, X, Sparkles, ChevronLeft, LogOut, User, MessageSquare, Settings, Layers, LayoutGrid,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
-const navItems = [
-  { path: '/upload', label: 'Upload', icon: Upload },
-  { path: '/bulk', label: 'Bulk Upload', icon: Layers },
-  { path: '/documents', label: 'Documents', icon: FileText },
-  { path: '/chat', label: 'Chat', icon: MessageSquare },
-  { path: '/admin', label: 'Configs', icon: Settings },
+const allNavItems = [
+  { path: '/dashboard', label: 'Dashboard', icon: LayoutGrid, adminOnly: false },
+  { path: '/upload', label: 'Upload', icon: Upload, adminOnly: false },
+  { path: '/bulk', label: 'Bulk Upload', icon: Layers, adminOnly: false },
+  { path: '/documents', label: 'Documents', icon: FileText, adminOnly: false },
+  { path: '/chat', label: 'Chat', icon: MessageSquare, adminOnly: false },
+  { path: '/admin', label: 'Configs', icon: Settings, adminOnly: true },
 ]
 
 export default function Layout({ children }) {
@@ -18,6 +19,11 @@ export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
+
+  const navItems = useMemo(() => {
+    const role = user?.role || 'user'
+    return allNavItems.filter((item) => !item.adminOnly || role === 'admin')
+  }, [user])
 
   const sidebarContent = (
     <>
@@ -111,6 +117,9 @@ export default function Layout({ children }) {
                   {user.name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
                 <span className="text-xs text-[#94a3b8] hidden md:inline">{user.name}</span>
+                {user.role === 'admin' && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#6366f1]/20 text-[#6366f1] font-medium ml-1">admin</span>
+                )}
               </div>
             )}
             <button

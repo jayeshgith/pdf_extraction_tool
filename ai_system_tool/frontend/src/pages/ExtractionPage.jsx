@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Document, Page, pdfjs } from 'react-pdf'
 import {
@@ -81,10 +81,35 @@ export default function ExtractionPage() {
   const [pageNum, setPageNum] = useState(1)
   const [showRaw, setShowRaw] = useState(false)
   const [scale, setScale] = useState(1)
+  const [saveIndicator, setSaveIndicator] = useState('')
+  const [progressStep, setProgressStep] = useState('')
+  const [progressMessage, setProgressMessage] = useState('')
+  const saveTimerRef = useRef(null)
+  const wsRef = useRef(null)
 
   const zoomIn = () => setScale((s) => Math.min(4, +(s + 0.25).toFixed(2)))
   const zoomOut = () => setScale((s) => Math.max(0.25, +(s - 0.25).toFixed(2)))
   const zoomReset = () => setScale(1)
+
+  const autoSave = useCallback((data) => {
+    setSaveIndicator('Saving...')
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(async () => {
+      try {
+        await updateDocument(id, { extracted_data: data })
+        setSaveIndicator('Saved')
+        setTimeout(() => setSaveIndicator(''), 2000)
+      } catch {
+        setSaveIndicator('Save failed')
+      }
+    }, 1500)
+  }, [id])
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (!id) return
@@ -92,6 +117,58 @@ export default function ExtractionPage() {
     let pollTimer = null
     const POLL_TIMEOUT = 300000
     const startTime = Date.now()
+
+    const wsBase = (import.meta.env.VITE_API_URL || '').replace(/^http/, 'ws').replace(/\/api\/?$/, '')
+    const wsUrl = wsBase + '/ws/document/' + id
+
+    const connectWs = () => {
+      if (cancelled) return
+      try {
+        const ws = new WebSocket(wsUrl)
+        wsRef.current = ws
+        ws.onmessage = (e) => {
+          if (cancelled) return
+          try {
+            const ev = JSON.parse(e.data)
+            setProgressStep(ev.step || '')
+            setProgressMessage(ev.message || '')
+            if (ev.status === 'completed' && ev.payload) {
+              setDoc((prev) => ({
+                ...(prev || {}),
+                status: 'completed',
+                extracted_data: ev.payload.extracted_data || {},
+                confidence_scores: ev.payload.confidence_scores || {},
+                overall_confidence: ev.payload.overall_confidence || 0,
+                raw_text: ev.payload.raw_text || '',
+                ocr_words: ev.payload.ocr_words || [],
+                error_message: null,
+              }))
+              setProcessing(false)
+            } else if (ev.status === 'failed') {
+              setDoc((prev) => ({
+                ...(prev || {}),
+                status: 'failed',
+                error_message: ev.payload?.error_message || 'Extraction failed',
+              }))
+              setProcessing(false)
+            }
+          } catch (err) {
+            console.warn('[WS] parse error', err)
+          }
+        }
+        ws.onclose = () => {
+          wsRef.current = null
+        }
+        ws.onerror = () => {
+          ws.close()
+          wsRef.current = null
+        }
+      } catch (err) {
+        console.warn('[WS] connection failed, falling back to polling', err)
+      }
+    }
+
+    connectWs()
 
     const fetchDoc = () => {
       if (cancelled) return
@@ -111,6 +188,8 @@ export default function ExtractionPage() {
             pollTimer = setTimeout(fetchDoc, 2000)
           } else {
             setProcessing(false)
+            setProgressStep(res.data.progress_step || '')
+            setProgressMessage(res.data.progress_message || '')
           }
         })
         .catch((err) => {
@@ -125,6 +204,10 @@ export default function ExtractionPage() {
     return () => {
       cancelled = true
       if (pollTimer) clearTimeout(pollTimer)
+      if (wsRef.current) {
+        wsRef.current.close()
+        wsRef.current = null
+      }
     }
   }, [id])
 
@@ -203,6 +286,7 @@ export default function ExtractionPage() {
             <svg size={16} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span className="hidden sm:inline">Download</span>
           </a>
+          {saveIndicator && <span className={'text-xs ' + (saveIndicator === 'Saved' ? 'text-[#22c55e]' : saveIndicator === 'Save failed' ? 'text-[#ef4444]' : 'text-[#f59e0b]')}>{saveIndicator}</span>}
           {editing ? (
             <>
               <button
@@ -281,13 +365,16 @@ export default function ExtractionPage() {
             }}
           >
             {isImage ? (
-              <div className="inline-flex items-start justify-center transition-transform duration-200">
-                <img
-                  src={fileUrl}
-                  alt="Document"
-                  style={{ transform: `scale(${scale})`, transformOrigin: 'center top' }}
-                  className="rounded-lg object-contain"
-                />
+              <div className="inline-flex items-start justify-center overflow-hidden">
+                <div style={{ transform: `scale(${scale})`, transformOrigin: 'center top' }} className="transition-transform duration-200">
+                  <div className="relative">
+                    <img
+                      src={fileUrl}
+                      alt="Document"
+                      className="rounded-lg object-contain block"
+                    />
+                  </div>
+                </div>
               </div>
             ) : isPdf ? (
               <div className="w-full flex flex-col items-center">
@@ -353,8 +440,8 @@ export default function ExtractionPage() {
                   <div className="absolute inset-0 border-4 border-[#1e293b] rounded-full"></div>
                   <div className="absolute inset-0 border-4 border-transparent border-t-[#6366f1] rounded-full animate-spin"></div>
                 </div>
-                <p className="text-[#f1f5f9] text-sm font-medium">Processing your document...</p>
-                <p className="text-[#64748b] text-xs">Extracting text and identifying fields</p>
+                <p className="text-[#f1f5f9] text-sm font-medium">{progressStep ? progressStep.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Processing'}</p>
+                <p className="text-[#64748b] text-xs">{progressMessage || 'Extracting text and identifying fields'}</p>
               </div>
             ) : relevantKeys.map((key) => {
               const meta = fieldMeta[key]
@@ -382,7 +469,11 @@ export default function ExtractionPage() {
                     <input
                       type="text"
                       value={val || ''}
-                      onChange={(e) => setEditedFields({ ...editedFields, [key]: e.target.value })}
+                      onChange={(e) => {
+                        const next = { ...editedFields, [key]: e.target.value }
+                        setEditedFields(next)
+                        autoSave(next)
+                      }}
                       className="w-full bg-[#0f172a] border border-[#334155] rounded-md px-2 py-1 text-[#f1f5f9] text-sm focus:outline-none focus:border-[#6366f1] transition-colors"
                     />
                   ) : (
