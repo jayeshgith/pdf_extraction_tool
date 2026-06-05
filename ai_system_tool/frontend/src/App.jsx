@@ -11,6 +11,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import ChatPage from './pages/ChatPage'
 import AdminConfigsPage from './pages/AdminConfigsPage'
 import BulkUploadPage from './pages/BulkUploadPage'
+import DocumentListPage from './pages/DocumentListPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -39,6 +40,7 @@ function App() {
       <Route path="/extraction/:id" element={<ProtectedRoute><ExtractionPage /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute><AdminConfigsPage /></ProtectedRoute>} />
+      <Route path="/documents" element={<ProtectedRoute><DocumentListPage /></ProtectedRoute>} />
       <Route path="/bulk" element={<ProtectedRoute><BulkUploadPage /></ProtectedRoute>} />
     </Routes>
   )

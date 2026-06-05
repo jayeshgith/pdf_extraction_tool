@@ -35,8 +35,8 @@ export const uploadDocument = (file, onProgress) => {
 
 export const getDocument = (id) => api.get(`/documents/${id}`)
 
-export const listDocuments = (page = 1, limit = 10) =>
-  api.get('/documents', { params: { page, limit } })
+export const listDocuments = (page = 1, limit = 10, filters = {}) =>
+  api.get('/documents', { params: { page, limit, ...filters } })
 
 export const deleteDocument = (id) => api.delete(`/documents/${id}`)
 

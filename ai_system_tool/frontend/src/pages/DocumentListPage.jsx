@@ -6,6 +6,15 @@ import {
 } from 'lucide-react'
 import { listDocuments, deleteDocument } from '../services/api'
 
+const MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+]
+
+const currentYear = new Date().getFullYear()
+const YEARS = Array.from({ length: currentYear - 2019 }, (_, i) => 2020 + i)
+const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
+
 const statusColors = {
   completed: 'bg-[#22c55e]/10 text-[#22c55e] border-[#22c55e]/20',
   processing: 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20',
@@ -18,6 +27,9 @@ export default function DocumentListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [year, setYear] = useState('')
+  const [month, setMonth] = useState('')
+  const [day, setDay] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [deleting, setDeleting] = useState(null)
@@ -26,7 +38,12 @@ export default function DocumentListPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await listDocuments(page, 10)
+      const filters = {}
+      if (search.trim()) filters.search = search.trim()
+      if (year) filters.year = year
+      if (month) filters.month = month
+      if (day) filters.day = day
+      const res = await listDocuments(page, 10, filters)
       setDocs(res.data.documents || res.data || [])
       setTotalPages(res.data.totalPages || 1)
     } catch (err) {
@@ -38,7 +55,13 @@ export default function DocumentListPage() {
 
   useEffect(() => { fetchDocs() }, [page])
 
+  useEffect(() => {
+    setPage(1)
+    fetchDocs()
+  }, [search, year, month, day])
+
   const handleDelete = async (id) => {
+    if (!window.confirm('Delete this document?')) return
     setDeleting(id)
     try {
       await deleteDocument(id)
@@ -49,14 +72,6 @@ export default function DocumentListPage() {
       setDeleting(null)
     }
   }
-
-  const filtered = search
-    ? docs.filter((d) =>
-        d.original_name?.toLowerCase().includes(search.toLowerCase()) ||
-        d.extracted_data?.name?.toLowerCase().includes(search.toLowerCase()) ||
-        d.extracted_data?.document_number?.toLowerCase().includes(search.toLowerCase())
-      )
-    : docs
 
   const getDocType = (doc) => {
     const type = doc.extracted_data?.document_type
@@ -76,25 +91,78 @@ export default function DocumentListPage() {
     })
   }
 
+  const selectedMonthName = month ? MONTHS[parseInt(month) - 1] : ''
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold text-[#f1f5f9]">Document List</h2>
-          <p className="text-[#64748b] text-sm mt-1">
-            View and manage all extracted documents
-          </p>
+      <div>
+        <h2 className="text-xl md:text-2xl font-bold text-[#f1f5f9]">All Documents</h2>
+        <p className="text-[#64748b] text-sm mt-1">
+          Browse, filter, and manage all extracted documents
+        </p>
+      </div>
+
+      <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 space-y-4">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" />
+            <input
+              type="text"
+              placeholder="Search by document name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-[#020617] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-sm placeholder-[#64748b] focus:outline-none focus:border-[#6366f1] transition-colors"
+            />
+          </div>
+
+          <select
+            value={day}
+            onChange={(e) => setDay(e.target.value)}
+            className="px-3 py-2 bg-[#020617] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-sm focus:outline-none focus:border-[#6366f1] transition-colors cursor-pointer min-w-[70px]"
+          >
+            <option value="">Day</option>
+            {DAYS.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+
+          <select
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="px-3 py-2 bg-[#020617] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-sm focus:outline-none focus:border-[#6366f1] transition-colors cursor-pointer min-w-[90px]"
+          >
+            <option value="">Month</option>
+            {MONTHS.map((m, i) => (
+              <option key={m} value={i + 1}>{m}</option>
+            ))}
+          </select>
+
+          <select
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            className="px-3 py-2 bg-[#020617] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-sm focus:outline-none focus:border-[#6366f1] transition-colors cursor-pointer min-w-[90px]"
+          >
+            <option value="">Year</option>
+            {YEARS.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
         </div>
-        <div className="relative w-full md:w-64">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" />
-          <input
-            type="text"
-            placeholder="Search documents..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-[#f1f5f9] text-sm placeholder-[#64748b] focus:outline-none focus:border-[#6366f1] transition-colors"
-          />
-        </div>
+
+        {(year || month || day) && (
+          <div className="flex items-center gap-2 text-xs text-[#64748b]">
+            <span>Filtering by:</span>
+            {year && <span className="px-2 py-0.5 bg-[#1e293b] rounded text-[#cbd5e1]">{year}</span>}
+            {month && <span className="px-2 py-0.5 bg-[#1e293b] rounded text-[#cbd5e1]">{selectedMonthName}</span>}
+            {day && <span className="px-2 py-0.5 bg-[#1e293b] rounded text-[#cbd5e1]">Day {day}</span>}
+            <button
+              onClick={() => { setYear(''); setMonth(''); setDay('') }}
+              className="text-[#6366f1] hover:underline ml-1"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -124,7 +192,7 @@ export default function DocumentListPage() {
                     <Loader2 size={24} className="animate-spin text-[#6366f1] mx-auto" />
                   </td>
                 </tr>
-              ) : filtered.length === 0 ? (
+              ) : docs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-12">
                     <FileText size={48} className="text-[#334155] mx-auto mb-3" />
@@ -132,65 +200,63 @@ export default function DocumentListPage() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((doc) => {
-                  return (
-                    <tr key={doc._id} className="border-b border-[#1e293b] hover:bg-[#1e293b]/50 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-[#1e293b] rounded-lg text-[#6366f1]">
-                            <FileText size={18} />
-                          </div>
-                          <span className="text-[#f1f5f9] text-sm font-medium truncate max-w-[200px]">
-                            {doc.original_name}
-                          </span>
+                docs.map((doc) => (
+                  <tr key={doc._id} className="border-b border-[#1e293b] hover:bg-[#1e293b]/50 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-[#1e293b] rounded-lg text-[#6366f1]">
+                          <FileText size={18} />
                         </div>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <span className="text-[#94a3b8] text-sm">{getDocType(doc)}</span>
-                      </td>
-                      <td className="px-4 py-3 hidden sm:table-cell">
-                        <span className="text-[#cbd5e1] text-sm">
-                          {doc.extracted_data?.name || '—'}
+                        <span className="text-[#f1f5f9] text-sm font-medium truncate max-w-[200px]">
+                          {doc.original_name}
                         </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${statusColors[doc.status] || statusColors.processing}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${doc.status === 'processing' ? 'animate-pulse' : ''}`} />
-                          {doc.status || 'processing'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <div className="flex items-center gap-1.5 text-[#64748b] text-xs">
-                          <Clock size={12} />
-                          {formatDate(doc.created_at || doc.upload_date)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => navigate(`/extraction/${doc._id}`)}
-                            className="p-2 hover:bg-[#1e293b] rounded-lg text-[#64748b] hover:text-[#6366f1] transition-colors"
-                            title="View"
-                          >
-                            <Eye size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(doc._id)}
-                            disabled={deleting === doc._id}
-                            className="p-2 hover:bg-[#1e293b] rounded-lg text-[#64748b] hover:text-[#ef4444] transition-colors disabled:opacity-50"
-                            title="Delete"
-                          >
-                            {deleting === doc._id ? (
-                              <Loader2 size={16} className="animate-spin" />
-                            ) : (
-                              <Trash2 size={16} />
-                            )}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      <span className="text-[#94a3b8] text-sm">{getDocType(doc)}</span>
+                    </td>
+                    <td className="px-4 py-3 hidden sm:table-cell">
+                      <span className="text-[#cbd5e1] text-sm">
+                        {doc.extracted_data?.name || '—'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${statusColors[doc.status] || statusColors.processing}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${doc.status === 'processing' ? 'animate-pulse' : ''}`} />
+                        {doc.status || 'processing'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      <div className="flex items-center gap-1.5 text-[#64748b] text-xs">
+                        <Clock size={12} />
+                        {formatDate(doc.created_at || doc.upload_date)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => navigate(`/extraction/${doc._id}`)}
+                          className="p-2 hover:bg-[#1e293b] rounded-lg text-[#64748b] hover:text-[#6366f1] transition-colors"
+                          title="View"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(doc._id)}
+                          disabled={deleting === doc._id}
+                          className="p-2 hover:bg-[#1e293b] rounded-lg text-[#64748b] hover:text-[#ef4444] transition-colors disabled:opacity-50"
+                          title="Delete"
+                        >
+                          {deleting === doc._id ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={16} />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
