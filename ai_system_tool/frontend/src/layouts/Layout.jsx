@@ -10,7 +10,7 @@ const allNavItems = [
   { path: '/upload', label: 'Upload', icon: Upload, adminOnly: false },
   { path: '/bulk', label: 'Bulk Upload', icon: Layers, adminOnly: false },
   { path: '/chat', label: 'Chat', icon: MessageSquare, adminOnly: false },
-  { path: '/admin', label: 'Configs', icon: Settings, adminOnly: true },
+  { path: '/admin', label: 'Configs', icon: Settings, adminOnly: false },
 ]
 
 export default function Layout({ children }) {
