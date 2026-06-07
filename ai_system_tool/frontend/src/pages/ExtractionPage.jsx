@@ -246,10 +246,10 @@ export default function ExtractionPage() {
         <AlertCircle size={48} className="text-[#ef4444]" />
         <p className="text-[#ef4444]">{error}</p>
         <button
-          onClick={() => navigate('/documents')}
+          onClick={() => navigate('/dashboard')}
           className="text-[#6366f1] hover:underline text-sm"
         >
-          Back to documents
+          Back to dashboard
         </button>
       </div>
     )
@@ -273,7 +273,7 @@ export default function ExtractionPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <button
-          onClick={() => navigate('/documents')}
+          onClick={() => navigate('/dashboard')}
           className="flex items-center gap-2 text-[#475569] hover:text-[#0f172a] transition-colors w-fit"
         >
           <ArrowLeft size={20} />

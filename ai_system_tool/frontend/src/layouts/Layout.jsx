@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  Upload, Menu, Sparkles, ChevronLeft, LogOut, MessageSquare, Settings, Layers, LayoutGrid,
+  Upload, Menu, Sparkles, ChevronLeft, MessageSquare, Settings, Layers, LayoutGrid, UserCircle2,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -9,8 +9,8 @@ const allNavItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutGrid, adminOnly: false },
   { path: '/upload', label: 'Upload', icon: Upload, adminOnly: false },
   { path: '/bulk', label: 'Bulk Upload', icon: Layers, adminOnly: false },
+  { path: '/account', label: 'Account', icon: UserCircle2, adminOnly: false },
   { path: '/chat', label: 'Chat', icon: MessageSquare, adminOnly: false },
-  { path: '/documents', label: 'Documents', icon: LayoutGrid, adminOnly: false },
   { path: '/admin', label: 'Configs', icon: Settings, adminOnly: true },
 ]
 
@@ -114,23 +114,19 @@ export default function Layout({ children }) {
           </div>
           <div className="flex items-center gap-3">
             {user && (
-              <div className="flex items-center gap-2.5 px-3 py-1.5 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#818cf8] to-[#38bdf8] flex items-center justify-center text-xs font-bold text-white shadow-sm">
-                  {user.name?.charAt(0)?.toUpperCase() || '?'}
-                </div>
-                <span className="text-xs text-[#cbd5e1] font-medium hidden md:inline">{user.name}</span>
-                {user.role === 'admin' && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#818cf8]/20 text-[#818cf8] font-semibold ml-0.5">admin</span>
-                )}
-              </div>
-            )}
-            <button
-              onClick={logout}
-              className="p-2 text-[#64748b] hover:text-[#ef4444] hover:bg-[#ef4444]/10 rounded-lg transition-all"
-              title="Sign Out"
+            <Link
+              to="/account"
+              className="flex items-center gap-2.5 px-3 py-1.5 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl hover:border-[#6366f1]/40 transition-all duration-200"
             >
-              <LogOut size={18} />
-            </button>
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#818cf8] to-[#38bdf8] flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                {user.name?.charAt(0)?.toUpperCase() || '?'}
+              </div>
+              <span className="text-xs text-[#cbd5e1] font-medium hidden md:inline">{user.name}</span>
+              {user.role === 'admin' && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#818cf8]/20 text-[#818cf8] font-semibold ml-0.5">admin</span>
+              )}
+            </Link>
+          )}
           </div>
         </header>
         <div className="flex-1 overflow-auto p-4 md:p-6">

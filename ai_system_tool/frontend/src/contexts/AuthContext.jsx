@@ -17,9 +17,12 @@ export function AuthProvider({ children }) {
     }
     try {
       const res = await api.get('/auth/me')
-      setUser(res.data)
+      const savedProfile = localStorage.getItem('userProfile')
+      const profile = savedProfile ? JSON.parse(savedProfile) : {}
+      setUser({ ...res.data, ...profile })
     } catch {
       localStorage.removeItem('token')
+      localStorage.removeItem('userProfile')
       setUser(null)
     } finally {
       setLoading(false)
@@ -28,9 +31,19 @@ export function AuthProvider({ children }) {
 
   useEffect(() => { checkAuth() }, [checkAuth])
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser)
+    try {
+      localStorage.setItem('userProfile', JSON.stringify(updatedUser))
+    } catch {
+      // ignore local storage errors
+    }
+  }
+
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password })
     localStorage.setItem('token', res.data.token)
+    localStorage.removeItem('userProfile')
     setUser(res.data.user)
     return res.data
   }
@@ -38,12 +51,14 @@ export function AuthProvider({ children }) {
   const signup = async (email, name, password) => {
     const res = await api.post('/auth/signup', { email, name, password })
     localStorage.setItem('token', res.data.token)
+    localStorage.removeItem('userProfile')
     setUser(res.data.user)
     return res.data
   }
 
   const logout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('userProfile')
     setUser(null)
   }
 

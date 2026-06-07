@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const [docsLoading, setDocsLoading] = useState(true)
   const [error, setError] = useState('')
   const [deleting, setDeleting] = useState(null)
+  const [showAllDocs, setShowAllDocs] = useState(false)
 
   const loadDashboardData = async () => {
     setStatsLoading(true)
@@ -40,11 +41,11 @@ export default function DashboardPage() {
     }
   }
 
-  const fetchDocs = async () => {
+  const fetchDocs = async (limit = 5) => {
     setDocsLoading(true)
     setError('')
     try {
-      const res = await listDocuments(1, 5)
+      const res = await listDocuments(1, limit)
       setDocs(res.data.documents || res.data || [])
     } catch (err) {
       setError(err.message)
@@ -76,8 +77,9 @@ export default function DashboardPage() {
 
     const loadInitialDocs = async () => {
       try {
-        const res = await listDocuments(1, 5)
-        if (!cancelled) setDocs(res.data.documents || res.data || [])
+        if (!cancelled) {
+          await fetchDocs(showAllDocs ? 100 : 5)
+        }
       } catch (err) {
         if (!cancelled) setError(err.message)
       } finally {
@@ -87,14 +89,14 @@ export default function DashboardPage() {
 
     loadInitialDocs()
     return () => { cancelled = true }
-  }, [])
+  }, [showAllDocs])
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this document?")) return
     setDeleting(id)
     try {
       await deleteDocument(id)
-      setDocs((prev) => prev.filter((d) => d._id !== id))
+      await fetchDocs(showAllDocs ? 100 : 5)
       loadDashboardData()
     } catch (err) {
       setError(err.message)
@@ -269,11 +271,11 @@ export default function DashboardPage() {
             <p className="text-xs text-[#64748b]">Monitor queue states, verify details, or navigate to full previews</p>
           </div>
           <button
-            onClick={() => navigate('/documents')}
+            onClick={() => setShowAllDocs((prev) => !prev)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#6366f1]/10 text-[#6366f1] border border-[#6366f1]/30 hover:bg-[#6366f1]/20 transition-all"
           >
             <ExternalLink size={14} />
-            View All
+            {showAllDocs ? 'Show Recent' : 'View All'}
           </button>
         </div>
 
