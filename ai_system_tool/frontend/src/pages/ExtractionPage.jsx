@@ -43,6 +43,7 @@ const fieldMeta = {
   place_of_birth: { icon: Globe, label: 'Place of Birth' },
   place_of_issue: { icon: MapPin, label: 'Place of Issue' },
   mobile_number: { icon: Phone, label: 'Mobile Number' },
+  voter_id_number: { icon: Fingerprint, label: 'Voter ID Number' },
 }
 
 const DOC_FIELDS = {
@@ -52,6 +53,7 @@ const DOC_FIELDS = {
   invoice: ['document_type', 'invoice_number', 'name', 'vendor', 'date', 'total_amount'],
   bill: ['document_type', 'bill_number', 'vendor', 'date', 'total_amount', 'name'],
   resume: ['document_type', 'name', 'email', 'phone', 'skills', 'education', 'experience_summary'],
+  voter_id: ['document_type', 'voter_id_number', 'name', 'father_name', 'gender', 'dob', 'address'],
   other: ['document_type', 'name', 'document_number', 'date', 'email', 'phone', 'father_name', 'holder_name', 'card_number', 'address', 'dob'],
 }
 

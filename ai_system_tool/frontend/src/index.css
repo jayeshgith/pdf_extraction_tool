@@ -7,9 +7,9 @@
   --color-secondary: #0ea5e9;
   --color-accent: #f59e0b;
   --color-surface: #ffffff;
-  --color-surface-light: #f1f5f9;
-  --color-surface-lighter: #cbd5e1;
-  --color-border: #cbd5e1;
+  --color-surface-light: #f8fafc;
+  --color-surface-lighter: #f1f5f9;
+  --color-border: #e2e8f0;
   --color-text: #475569;
   --color-text-light: #334155;
   --color-text-heading: #0f172a;
@@ -18,12 +18,18 @@
   --color-error: #ef4444;
 }
 
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background: #f8fafc;
-  color: var(--color-text);
+  color: #475569;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -32,14 +38,17 @@ body {
 
 ::-webkit-scrollbar {
   width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-surface);
+  height: 6px;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-surface-lighter);
+  background: #cbd5e1;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-border);
+  background: #94a3b8;
+}
+
+::selection {
+  background: #6366f1;
+  color: #ffffff;
 }
