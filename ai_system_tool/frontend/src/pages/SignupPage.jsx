@@ -49,7 +49,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#020617] flex items-center justify-center p-4 overflow-hidden">
+    <div className="relative min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#6366f1]/10 blur-[120px]" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#0ea5e9]/10 blur-[120px]" />
@@ -61,17 +61,17 @@ export default function SignupPage() {
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#6366f1] to-[#0ea5e9] shadow-lg shadow-[#6366f1]/25 flex items-center justify-center">
               <Sparkles size={24} className="text-white" />
             </div>
-            <span className="font-bold text-2xl text-[#f1f5f9] tracking-tight">DocuVerse</span>
+            <span className="font-bold text-2xl text-[#0f172a] tracking-tight">DocuVerse</span>
           </div>
-          <h2 className="text-xl font-semibold text-[#f1f5f9]">Create account</h2>
+          <h2 className="text-xl font-semibold text-[#0f172a]">Create account</h2>
           <p className="text-[#64748b] mt-1.5 text-sm">Get started with DocuVerse</p>
         </div>
 
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-b from-[#6366f1]/5 to-[#0ea5e9]/5 rounded-2xl blur-sm" />
-          <form onSubmit={handleSubmit} className="relative bg-[#0f172a]/90 backdrop-blur-xl border border-[#1e293b] rounded-2xl p-6 md:p-8 space-y-5 shadow-xl shadow-black/20">
+          <form onSubmit={handleSubmit} className="relative bg-[#ffffff]/90 backdrop-blur-xl border border-[#f1f5f9] rounded-2xl p-6 md:p-8 space-y-5 shadow-xl shadow-black/20">
             <div>
-              <label className="block text-sm font-medium text-[#94a3b8] mb-1.5">Full Name</label>
+              <label className="block text-sm font-medium text-[#475569] mb-1.5">Full Name</label>
               <div className="relative group">
                 <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748b] group-focus-within:text-[#6366f1] transition-colors" />
                 <input
@@ -80,13 +80,13 @@ export default function SignupPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="John Doe"
                   required
-                  className="w-full pl-11 pr-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-[#f1f5f9] text-sm placeholder:text-[#475569] focus:outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]/40 transition-all"
+                  className="w-full pl-11 pr-4 py-3 bg-[#f1f5f9] border border-[#cbd5e1] rounded-xl text-[#0f172a] text-sm placeholder:text-[#94a3b8] focus:outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]/40 transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#94a3b8] mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-[#475569] mb-1.5">Email</label>
               <div className="relative group">
                 <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748b] group-focus-within:text-[#6366f1] transition-colors" />
                 <input
@@ -95,14 +95,14 @@ export default function SignupPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
-                  className="w-full pl-11 pr-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-[#f1f5f9] text-sm placeholder:text-[#475569] focus:outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]/40 transition-all"
+                  className="w-full pl-11 pr-4 py-3 bg-[#f1f5f9] border border-[#cbd5e1] rounded-xl text-[#0f172a] text-sm placeholder:text-[#94a3b8] focus:outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]/40 transition-all"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-medium text-[#94a3b8]">Password</label>
+                <label className="block text-sm font-medium text-[#475569]">Password</label>
                 <button
                   type="button"
                   onClick={generatePassword}
@@ -121,12 +121,12 @@ export default function SignupPage() {
                   placeholder="At least 6 characters"
                   required
                   minLength={6}
-                  className="w-full pl-11 pr-11 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-[#f1f5f9] text-sm placeholder:text-[#475569] focus:outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]/40 transition-all"
+                  className="w-full pl-11 pr-11 py-3 bg-[#f1f5f9] border border-[#cbd5e1] rounded-xl text-[#0f172a] text-sm placeholder:text-[#94a3b8] focus:outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]/40 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748b] hover:text-[#94a3b8] transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748b] hover:text-[#475569] transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -134,7 +134,7 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#94a3b8] mb-1.5">Confirm Password</label>
+              <label className="block text-sm font-medium text-[#475569] mb-1.5">Confirm Password</label>
               <div className="relative group">
                 <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748b] group-focus-within:text-[#6366f1] transition-colors" />
                 <input
@@ -143,12 +143,12 @@ export default function SignupPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter password"
                   required
-                  className="w-full pl-11 pr-11 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-[#f1f5f9] text-sm placeholder:text-[#475569] focus:outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]/40 transition-all"
+                  className="w-full pl-11 pr-11 py-3 bg-[#f1f5f9] border border-[#cbd5e1] rounded-xl text-[#0f172a] text-sm placeholder:text-[#94a3b8] focus:outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]/40 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748b] hover:text-[#94a3b8] transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748b] hover:text-[#475569] transition-colors"
                 >
                   {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>

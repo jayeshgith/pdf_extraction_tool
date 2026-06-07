@@ -125,7 +125,7 @@ export default function AdminConfigsPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h2 className="text-xl md:text-2xl font-bold text-[#f1f5f9]">Document Configs</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-[#0f172a]">Document Configs</h2>
         <p className="text-[#64748b] text-sm mt-1">
           Manage document types, fields, and extraction rules
         </p>
@@ -146,7 +146,7 @@ export default function AdminConfigsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-2 space-y-2">
-          <h3 className="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-3">Document Types</h3>
+          <h3 className="text-sm font-semibold text-[#475569] uppercase tracking-wider mb-3">Document Types</h3>
           {loading ? (
             <div className="flex justify-center py-8">
               <Loader2 size={24} className="animate-spin text-[#6366f1]" />
@@ -162,7 +162,7 @@ export default function AdminConfigsPage() {
                   className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all ${
                     editing === cfg.document_type
                       ? 'bg-[#6366f1]/10 text-[#6366f1] border border-[#6366f1]/30'
-                      : 'bg-[#0f172a] text-[#cbd5e1] border border-[#1e293b] hover:border-[#6366f1]/50'
+                      : 'bg-[#ffffff] text-[#334155] border border-[#f1f5f9] hover:border-[#6366f1]/50'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -179,7 +179,7 @@ export default function AdminConfigsPage() {
                 className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all border border-dashed ${
                   !editing
                     ? 'bg-[#6366f1]/10 text-[#6366f1] border-[#6366f1]/30'
-                    : 'bg-[#0f172a] text-[#94a3b8] border-[#1e293b] hover:border-[#6366f1]/50'
+                    : 'bg-[#ffffff] text-[#475569] border-[#f1f5f9] hover:border-[#6366f1]/50'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -192,37 +192,37 @@ export default function AdminConfigsPage() {
         </div>
 
         <div className="lg:col-span-3 space-y-4">
-          <h3 className="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-3">
+          <h3 className="text-sm font-semibold text-[#475569] uppercase tracking-wider mb-3">
             {editing ? `Edit: ${editing}` : 'New Configuration'}
           </h3>
 
-          <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 space-y-4">
+          <div className="bg-[#ffffff] border border-[#f1f5f9] rounded-xl p-5 space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-[#94a3b8] mb-1">Document Type (slug)</label>
+                <label className="block text-xs font-medium text-[#475569] mb-1">Document Type (slug)</label>
                 <input
                   type="text"
                   value={form.document_type}
                   onChange={e => setForm(prev => ({ ...prev, document_type: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_') }))}
                   placeholder="e.g. passport"
-                  className="w-full px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-lg text-[#f1f5f9] text-sm placeholder-[#475569] focus:outline-none focus:border-[#6366f1]"
+                  className="w-full px-3 py-2 bg-[#f1f5f9] border border-[#cbd5e1] rounded-lg text-[#0f172a] text-sm placeholder-[#94a3b8] focus:outline-none focus:border-[#6366f1]"
                   disabled={!!editing}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[#94a3b8] mb-1">Display Name</label>
+                <label className="block text-xs font-medium text-[#475569] mb-1">Display Name</label>
                 <input
                   type="text"
                   value={form.display_name}
                   onChange={e => setForm(prev => ({ ...prev, display_name: e.target.value }))}
                   placeholder="e.g. Passport"
-                  className="w-full px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-lg text-[#f1f5f9] text-sm placeholder-[#475569] focus:outline-none focus:border-[#6366f1]"
+                  className="w-full px-3 py-2 bg-[#f1f5f9] border border-[#cbd5e1] rounded-lg text-[#0f172a] text-sm placeholder-[#94a3b8] focus:outline-none focus:border-[#6366f1]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#94a3b8] mb-1">Confidence Threshold</label>
+              <label className="block text-xs font-medium text-[#475569] mb-1">Confidence Threshold</label>
               <input
                 type="number"
                 step="0.01"
@@ -230,13 +230,13 @@ export default function AdminConfigsPage() {
                 max="1"
                 value={form.confidence_threshold}
                 onChange={e => setForm(prev => ({ ...prev, confidence_threshold: parseFloat(e.target.value) || 0 }))}
-                className="w-full px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-lg text-[#f1f5f9] text-sm focus:outline-none focus:border-[#6366f1]"
+                className="w-full px-3 py-2 bg-[#f1f5f9] border border-[#cbd5e1] rounded-lg text-[#0f172a] text-sm focus:outline-none focus:border-[#6366f1]"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-medium text-[#94a3b8]">Fields</label>
+                <label className="text-xs font-medium text-[#475569]">Fields</label>
                 <button
                   onClick={addField}
                   className="flex items-center gap-1 text-xs text-[#6366f1] hover:text-[#818cf8] transition-colors"
@@ -252,7 +252,7 @@ export default function AdminConfigsPage() {
 
               <div className="space-y-2">
                 {form.fields.map((field, idx) => (
-                  <div key={idx} className="bg-[#1e293b] rounded-lg p-3 border border-[#334155]">
+                  <div key={idx} className="bg-[#f1f5f9] rounded-lg p-3 border border-[#cbd5e1]">
                     <div className="flex items-start justify-between mb-2">
                       <span className="text-xs font-medium text-[#64748b]">Field {idx + 1}</span>
                       <button
@@ -270,7 +270,7 @@ export default function AdminConfigsPage() {
                           value={field.key}
                           onChange={e => updateField(idx, 'key', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
                           placeholder="e.g. passport_number"
-                          className="w-full px-2 py-1.5 bg-[#0f172a] border border-[#334155] rounded text-[#f1f5f9] text-xs placeholder-[#475569] focus:outline-none focus:border-[#6366f1]"
+                          className="w-full px-2 py-1.5 bg-[#ffffff] border border-[#cbd5e1] rounded text-[#0f172a] text-xs placeholder-[#94a3b8] focus:outline-none focus:border-[#6366f1]"
                         />
                       </div>
                       <div>
@@ -280,7 +280,7 @@ export default function AdminConfigsPage() {
                           value={field.description}
                           onChange={e => updateField(idx, 'description', e.target.value)}
                           placeholder="e.g. Passport number"
-                          className="w-full px-2 py-1.5 bg-[#0f172a] border border-[#334155] rounded text-[#f1f5f9] text-xs placeholder-[#475569] focus:outline-none focus:border-[#6366f1]"
+                          className="w-full px-2 py-1.5 bg-[#ffffff] border border-[#cbd5e1] rounded text-[#0f172a] text-xs placeholder-[#94a3b8] focus:outline-none focus:border-[#6366f1]"
                         />
                       </div>
                     </div>
@@ -291,7 +291,7 @@ export default function AdminConfigsPage() {
                         value={field.regex_pattern}
                         onChange={e => updateField(idx, 'regex_pattern', e.target.value)}
                         placeholder="e.g. (?:passport\s*(?:no|number)..."
-                        className="w-full px-2 py-1.5 bg-[#0f172a] border border-[#334155] rounded text-[#f1f5f9] text-xs font-mono placeholder-[#475569] focus:outline-none focus:border-[#6366f1]"
+                        className="w-full px-2 py-1.5 bg-[#ffffff] border border-[#cbd5e1] rounded text-[#0f172a] text-xs font-mono placeholder-[#94a3b8] focus:outline-none focus:border-[#6366f1]"
                       />
                     </div>
                     <label className="flex items-center gap-2 cursor-pointer">
@@ -299,9 +299,9 @@ export default function AdminConfigsPage() {
                         type="checkbox"
                         checked={field.is_required}
                         onChange={e => updateField(idx, 'is_required', e.target.checked)}
-                        className="rounded border-[#334155] bg-[#0f172a] text-[#6366f1] focus:ring-[#6366f1]"
+                        className="rounded border-[#cbd5e1] bg-[#ffffff] text-[#6366f1] focus:ring-[#6366f1]"
                       />
-                      <span className="text-xs text-[#94a3b8]">Required field</span>
+                      <span className="text-xs text-[#475569]">Required field</span>
                     </label>
                   </div>
                 ))}

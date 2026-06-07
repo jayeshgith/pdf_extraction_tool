@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   CheckCircle2, RefreshCw, BarChart3,
-  Search, Eye, Trash2, ChevronLeft, ChevronRight,
+  Eye, Trash2,
   TrendingUp, Award, Layers, Sparkles, ExternalLink
 } from 'lucide-react'
 import {
@@ -27,7 +27,6 @@ export default function DashboardPage() {
   const [docsLoading, setDocsLoading] = useState(true)
   const [error, setError] = useState('')
   const [deleting, setDeleting] = useState(null)
-  const [page, setPage] = useState(1)
 
   const loadDashboardData = async () => {
     setStatsLoading(true)
@@ -45,7 +44,7 @@ export default function DashboardPage() {
     setDocsLoading(true)
     setError('')
     try {
-      const res = await listDocuments(page, 5)
+      const res = await listDocuments(1, 5)
       setDocs(res.data.documents || res.data || [])
     } catch (err) {
       setError(err.message)
@@ -55,12 +54,40 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    loadDashboardData()
+    let cancelled = false
+
+    const loadInitialStats = async () => {
+      try {
+        const statsRes = await getDashboardStats()
+        if (!cancelled) setStats(statsRes.data)
+      } catch (err) {
+        console.error("Failed to load dashboard metrics", err)
+      } finally {
+        if (!cancelled) setStatsLoading(false)
+      }
+    }
+
+    loadInitialStats()
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
-    fetchDocs()
-  }, [page])
+    let cancelled = false
+
+    const loadInitialDocs = async () => {
+      try {
+        const res = await listDocuments(1, 5)
+        if (!cancelled) setDocs(res.data.documents || res.data || [])
+      } catch (err) {
+        if (!cancelled) setError(err.message)
+      } finally {
+        if (!cancelled) setDocsLoading(false)
+      }
+    }
+
+    loadInitialDocs()
+    return () => { cancelled = true }
+  }, [])
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this document?")) return
@@ -81,7 +108,7 @@ export default function DashboardPage() {
   }
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return '—'
+    if (!dateStr) return '-'
     return new Date(dateStr).toLocaleString('en-IN', {
       year: 'numeric', month: 'short', day: 'numeric',
       timeZone: 'Asia/Kolkata',
@@ -95,7 +122,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#f1f5f9] flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-[#0f172a] flex items-center gap-2">
           <Sparkles className="text-[#6366f1]" size={24} /> Dashboard Overview
         </h2>
         <p className="text-[#64748b] text-sm mt-1">
@@ -104,23 +131,23 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 hover:border-[#6366f1]/50 transition-all duration-300 relative overflow-hidden group">
+        <div className="bg-[#ffffff] border border-[#e2e8f0] rounded-xl p-5 hover:border-[#6366f1]/50 transition-all duration-300 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#6366f1]/10 to-transparent rounded-bl-full pointer-events-none" />
           <div className="flex items-center justify-between">
-            <span className="text-sm text-[#94a3b8]">Total Processed</span>
+            <span className="text-sm text-[#475569]">Total Processed</span>
             <div className="p-2 bg-[#6366f1]/10 text-[#6366f1] rounded-lg">
               <Layers size={18} />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-[#f1f5f9] mt-4">
+          <p className="text-3xl font-extrabold text-[#0f172a] mt-4">
             {statsLoading ? '...' : stats?.totalDocs || 0}
           </p>
         </div>
 
-        <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 hover:border-[#22c55e]/50 transition-all duration-300 relative overflow-hidden">
+        <div className="bg-[#ffffff] border border-[#e2e8f0] rounded-xl p-5 hover:border-[#22c55e]/50 transition-all duration-300 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#22c55e]/10 to-transparent rounded-bl-full pointer-events-none" />
           <div className="flex items-center justify-between">
-            <span className="text-sm text-[#94a3b8]">Completed</span>
+            <span className="text-sm text-[#475569]">Completed</span>
             <div className="p-2 bg-[#22c55e]/10 text-[#22c55e] rounded-lg">
               <CheckCircle2 size={18} />
             </div>
@@ -130,10 +157,10 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 hover:border-[#f59e0b]/50 transition-all duration-300 relative overflow-hidden">
+        <div className="bg-[#ffffff] border border-[#e2e8f0] rounded-xl p-5 hover:border-[#f59e0b]/50 transition-all duration-300 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#f59e0b]/10 to-transparent rounded-bl-full pointer-events-none" />
           <div className="flex items-center justify-between">
-            <span className="text-sm text-[#94a3b8]">In Progress</span>
+            <span className="text-sm text-[#475569]">In Progress</span>
             <div className="p-2 bg-[#f59e0b]/10 text-[#f59e0b] rounded-lg">
               <RefreshCw className="animate-spin" size={18} />
             </div>
@@ -143,10 +170,10 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 hover:border-[#0ea5e9]/50 transition-all duration-300 relative overflow-hidden">
+        <div className="bg-[#ffffff] border border-[#e2e8f0] rounded-xl p-5 hover:border-[#0ea5e9]/50 transition-all duration-300 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#0ea5e9]/10 to-transparent rounded-bl-full pointer-events-none" />
           <div className="flex items-center justify-between">
-            <span className="text-sm text-[#94a3b8]">Avg. Confidence</span>
+            <span className="text-sm text-[#475569]">Avg. Confidence</span>
             <div className="p-2 bg-[#0ea5e9]/10 text-[#0ea5e9] rounded-lg">
               <Award size={18} />
             </div>
@@ -158,9 +185,9 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 lg:col-span-2">
+        <div className="bg-[#ffffff] border border-[#e2e8f0] rounded-xl p-5 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-[#f1f5f9] flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-[#0f172a] flex items-center gap-2">
               <TrendingUp size={16} className="text-[#6366f1]" /> Processing Volume (Last 7 Days)
             </h3>
           </div>
@@ -176,12 +203,12 @@ export default function DashboardPage() {
                       <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="date" stroke="#64748b" tick={{ fill: '#64748b', fontSize: 11 }} />
                   <YAxis stroke="#64748b" tick={{ fill: '#64748b', fontSize: 11 }} allowDecimals={false} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px' }}
-                    labelStyle={{ color: '#94a3b8' }}
+                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px' }}
+                    labelStyle={{ color: '#475569' }}
                   />
                   <Area type="monotone" dataKey="uploads" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#colorUploads)" />
                 </AreaChart>
@@ -190,8 +217,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-[#f1f5f9] flex items-center gap-2 mb-4">
+        <div className="bg-[#ffffff] border border-[#e2e8f0] rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-[#0f172a] flex items-center gap-2 mb-4">
             <BarChart3 size={16} className="text-[#0ea5e9]" /> Document Types
           </h3>
           <div className="h-64 flex flex-col justify-center">
@@ -217,11 +244,11 @@ export default function DashboardPage() {
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px' }}
+                      contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px' }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] text-[#cbd5e1]">
+                <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] text-[#334155]">
                   {pieData.map((item, index) => (
                     <span key={item.name} className="flex items-center gap-1">
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
@@ -235,10 +262,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 space-y-4">
+      <div className="bg-[#ffffff] border border-[#e2e8f0] rounded-xl p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-base font-semibold text-[#f1f5f9]">Recent Extractions</h3>
+            <h3 className="text-base font-semibold text-[#0f172a]">Recent Extractions</h3>
             <p className="text-xs text-[#64748b]">Monitor queue states, verify details, or navigate to full previews</p>
           </div>
           <button
@@ -259,7 +286,7 @@ export default function DashboardPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-[#1e293b] text-xs text-[#64748b]">
+              <tr className="border-b border-[#e2e8f0] text-xs text-[#64748b]">
                 <th className="pb-3 font-medium">Document Name</th>
                 <th className="pb-3 font-medium">Doc Type</th>
                 <th className="pb-3 font-medium">Status</th>
@@ -283,24 +310,24 @@ export default function DashboardPage() {
                 </tr>
               ) : (
                 docs.map((doc) => (
-                  <tr key={doc._id} className="border-b border-[#1e293b] text-xs hover:bg-[#1e293b]/20 transition-colors">
-                    <td className="py-3 font-medium text-[#f1f5f9] max-w-[150px] truncate">
+                  <tr key={doc._id} className="border-b border-[#e2e8f0] text-xs hover:bg-[#f1f5f9]/20 transition-colors">
+                    <td className="py-3 font-medium text-[#0f172a] max-w-[150px] truncate">
                       {doc.original_name}
                     </td>
-                    <td className="py-3 text-[#cbd5e1]">{getDocType(doc)}</td>
+                    <td className="py-3 text-[#334155]">{getDocType(doc)}</td>
                     <td className="py-3">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${statusColors[doc.status] || statusColors.processing}`}>
                         <span className={`w-1 h-1 rounded-full ${doc.status === 'processing' ? 'animate-pulse bg-[#f59e0b]' : doc.status === 'completed' ? 'bg-[#22c55e]' : doc.status === 'queued' ? 'bg-[#6366f1]' : 'bg-[#ef4444]'}`} />
                         {doc.status}
                       </span>
                     </td>
-                    <td className="py-3 text-[#cbd5e1]">{doc.extracted_data?.name || '—'}</td>
+                    <td className="py-3 text-[#334155]">{doc.extracted_data?.name || '-'}</td>
                     <td className="py-3 text-[#64748b]">{formatDate(doc.created_at)}</td>
                     <td className="py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => navigate(`/extraction/${doc._id}`)}
-                          className="p-1.5 hover:bg-[#1e293b] rounded-md text-[#64748b] hover:text-[#6366f1]"
+                          className="p-1.5 hover:bg-[#f1f5f9] rounded-md text-[#64748b] hover:text-[#6366f1]"
                           title="View Extraction"
                         >
                           <Eye size={14} />
@@ -308,7 +335,7 @@ export default function DashboardPage() {
                         <button
                           onClick={() => handleDelete(doc._id)}
                           disabled={deleting === doc._id}
-                          className="p-1.5 hover:bg-[#1e293b] rounded-md text-[#64748b] hover:text-[#ef4444]"
+                          className="p-1.5 hover:bg-[#f1f5f9] rounded-md text-[#64748b] hover:text-[#ef4444]"
                         >
                           <Trash2 size={14} />
                         </button>

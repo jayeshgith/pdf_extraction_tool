@@ -272,7 +272,7 @@ export default function ExtractionPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <button
           onClick={() => navigate('/documents')}
-          className="flex items-center gap-2 text-[#94a3b8] hover:text-[#f1f5f9] transition-colors w-fit"
+          className="flex items-center gap-2 text-[#475569] hover:text-[#0f172a] transition-colors w-fit"
         >
           <ArrowLeft size={20} />
           <span className="text-sm font-medium">Back</span>
@@ -283,7 +283,7 @@ export default function ExtractionPage() {
             download={doc.original_name}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 md:px-4 py-2 bg-[#1e293b] text-[#94a3b8] rounded-lg text-sm font-medium hover:text-[#f1f5f9] hover:bg-[#334155] transition-colors"
+            className="flex items-center gap-2 px-3 md:px-4 py-2 bg-[#f1f5f9] text-[#475569] rounded-lg text-sm font-medium hover:text-[#0f172a] hover:bg-[#cbd5e1] transition-colors"
           >
             <svg size={16} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span className="hidden sm:inline">Download</span>
@@ -304,7 +304,7 @@ export default function ExtractionPage() {
                   setEditing(false)
                   setEditedFields({ ...doc.extracted_data })
                 }}
-                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-[#1e293b] text-[#94a3b8] rounded-lg text-sm font-medium hover:text-[#f1f5f9] transition-colors"
+                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-[#f1f5f9] text-[#475569] rounded-lg text-sm font-medium hover:text-[#0f172a] transition-colors"
               >
                 <X size={16} />
                 Cancel
@@ -323,23 +323,23 @@ export default function ExtractionPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden">
-          <div className="p-4 border-b border-[#1e293b]">
+        <div className="bg-[#ffffff] border border-[#f1f5f9] rounded-xl overflow-hidden">
+          <div className="p-4 border-b border-[#f1f5f9]">
             <div className="flex items-center justify-between">
-              <h3 className="text-[#f1f5f9] font-medium text-sm">Document Preview</h3>
+              <h3 className="text-[#0f172a] font-medium text-sm">Document Preview</h3>
               {(isImage || isPdf) && (
                 <div className="flex items-center gap-1">
                   <button
                     onClick={zoomOut}
                     disabled={scale <= 0.25}
-                    className="p-1.5 rounded-lg text-[#64748b] hover:text-[#f1f5f9] hover:bg-[#1e293b] transition-colors disabled:opacity-30"
+                    className="p-1.5 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f5f9] transition-colors disabled:opacity-30"
                     title="Zoom Out"
                   >
                     <ZoomOut size={16} />
                   </button>
                   <button
                     onClick={zoomReset}
-                    className="px-2 py-1 rounded-lg text-xs font-medium text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-[#1e293b] transition-colors min-w-[48px] text-center"
+                    className="px-2 py-1 rounded-lg text-xs font-medium text-[#475569] hover:text-[#0f172a] hover:bg-[#f1f5f9] transition-colors min-w-[48px] text-center"
                     title="Reset Zoom"
                   >
                     {Math.round(scale * 100)}%
@@ -347,7 +347,7 @@ export default function ExtractionPage() {
                   <button
                     onClick={zoomIn}
                     disabled={scale >= 4}
-                    className="p-1.5 rounded-lg text-[#64748b] hover:text-[#f1f5f9] hover:bg-[#1e293b] transition-colors disabled:opacity-30"
+                    className="p-1.5 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f5f9] transition-colors disabled:opacity-30"
                     title="Zoom In"
                   >
                     <ZoomIn size={16} />
@@ -357,7 +357,7 @@ export default function ExtractionPage() {
             </div>
           </div>
           <div
-            className="p-4 flex flex-col items-center justify-center min-h-[400px] bg-[#020617] overflow-auto"
+            className="p-4 flex flex-col items-center justify-center min-h-[400px] bg-[#f8fafc] overflow-auto"
             onWheel={(e) => {
               if (e.ctrlKey || e.metaKey) {
                 e.preventDefault()
@@ -386,9 +386,9 @@ export default function ExtractionPage() {
                   loading={<Loader2 size={24} className="animate-spin text-[#6366f1]" />}
                   error={
                     <div className="text-center">
-                      <FileText size={64} className="text-[#334155] mx-auto mb-3" />
+                      <FileText size={64} className="text-[#cbd5e1] mx-auto mb-3" />
                       <p className="text-[#64748b] text-sm">{doc.original_name}</p>
-                      <p className="text-[#475569] text-xs mt-1">PDF preview unavailable</p>
+                      <p className="text-[#94a3b8] text-xs mt-1">PDF preview unavailable</p>
                     </div>
                   }
                 >
@@ -405,7 +405,7 @@ export default function ExtractionPage() {
                     <button
                       onClick={() => setPageNum((p) => Math.max(1, p - 1))}
                       disabled={pageNum <= 1}
-                      className="px-3 py-1 bg-[#1e293b] text-[#94a3b8] text-xs rounded-lg hover:text-[#f1f5f9] transition-colors disabled:opacity-50"
+                      className="px-3 py-1 bg-[#f1f5f9] text-[#475569] text-xs rounded-lg hover:text-[#0f172a] transition-colors disabled:opacity-50"
                     >
                       Previous
                     </button>
@@ -415,7 +415,7 @@ export default function ExtractionPage() {
                     <button
                       onClick={() => setPageNum((p) => Math.min(numPages, p + 1))}
                       disabled={pageNum >= numPages}
-                      className="px-3 py-1 bg-[#1e293b] text-[#94a3b8] text-xs rounded-lg hover:text-[#f1f5f9] transition-colors disabled:opacity-50"
+                      className="px-3 py-1 bg-[#f1f5f9] text-[#475569] text-xs rounded-lg hover:text-[#0f172a] transition-colors disabled:opacity-50"
                     >
                       Next
                     </button>
@@ -424,25 +424,25 @@ export default function ExtractionPage() {
               </div>
             ) : (
               <div className="text-center">
-                <FileText size={64} className="text-[#334155] mx-auto mb-3" />
+                <FileText size={64} className="text-[#cbd5e1] mx-auto mb-3" />
                 <p className="text-[#64748b] text-sm">{doc.original_name}</p>
               </div>
             )}
           </div>
         </div>
 
-        <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden">
-          <div className="p-4 border-b border-[#1e293b]">
-            <h3 className="text-[#f1f5f9] font-medium text-sm">Extracted Fields</h3>
+        <div className="bg-[#ffffff] border border-[#f1f5f9] rounded-xl overflow-hidden">
+          <div className="p-4 border-b border-[#f1f5f9]">
+            <h3 className="text-[#0f172a] font-medium text-sm">Extracted Fields</h3>
           </div>
           <div className="p-4 space-y-3 max-h-[500px] overflow-y-auto">
             {processing ? (
               <div className="text-center py-12 space-y-4">
                 <div className="relative mx-auto w-16 h-16">
-                  <div className="absolute inset-0 border-4 border-[#1e293b] rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-[#f1f5f9] rounded-full"></div>
                   <div className="absolute inset-0 border-4 border-transparent border-t-[#6366f1] rounded-full animate-spin"></div>
                 </div>
-                <p className="text-[#f1f5f9] text-sm font-medium">{progressStep ? progressStep.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Processing'}</p>
+                <p className="text-[#0f172a] text-sm font-medium">{progressStep ? progressStep.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Processing'}</p>
                 <p className="text-[#64748b] text-xs">{progressMessage || 'Extracting text and identifying fields'}</p>
               </div>
             ) : relevantKeys.map((key) => {
@@ -452,7 +452,7 @@ export default function ExtractionPage() {
               const val = editing ? editedFields[key] : fields[key]
               const conf = confidences[key]
               return (
-                <div key={key} className="bg-[#1e293b] rounded-lg p-3">
+                <div key={key} className="bg-[#f1f5f9] rounded-lg p-3">
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2 text-[#64748b] text-xs">
                       <Icon size={14} />
@@ -476,10 +476,10 @@ export default function ExtractionPage() {
                         setEditedFields(next)
                         autoSave(next)
                       }}
-                      className="w-full bg-[#0f172a] border border-[#334155] rounded-md px-2 py-1 text-[#f1f5f9] text-sm focus:outline-none focus:border-[#6366f1] transition-colors"
+                      className="w-full bg-[#ffffff] border border-[#cbd5e1] rounded-md px-2 py-1 text-[#0f172a] text-sm focus:outline-none focus:border-[#6366f1] transition-colors"
                     />
                   ) : (
-                    <p className="text-[#f1f5f9] text-sm font-medium break-words">{val || '—'}</p>
+                    <p className="text-[#0f172a] text-sm font-medium break-words">{val || '—'}</p>
                   )}
                 </div>
               )
@@ -487,7 +487,7 @@ export default function ExtractionPage() {
             {!processing && relevantKeys.every((k) => !fields[k]) && (
               <div className="text-center py-8 space-y-3">
                 <AlertCircle size={32} className="text-[#f59e0b] mx-auto" />
-                <p className="text-[#94a3b8] text-sm">No fields could be extracted</p>
+                <p className="text-[#475569] text-sm">No fields could be extracted</p>
                 {doc.error_message && (
                   <p className="text-[#ef4444] text-xs">{doc.error_message}</p>
                 )}
@@ -499,17 +499,17 @@ export default function ExtractionPage() {
       </div>
 
       {doc.raw_text && (
-        <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden">
+        <div className="bg-[#ffffff] border border-[#f1f5f9] rounded-xl overflow-hidden">
           <button
             onClick={() => setShowRaw(!showRaw)}
-            className="w-full p-4 flex items-center justify-between text-[#f1f5f9] text-sm font-medium hover:bg-[#1e293b]/50 transition-colors"
+            className="w-full p-4 flex items-center justify-between text-[#0f172a] text-sm font-medium hover:bg-[#f1f5f9]/50 transition-colors"
           >
             <span>Raw Extracted Text</span>
             <span className="text-[#64748b] text-xs">{showRaw ? 'Hide' : 'Show'} ({doc.raw_text.length} chars)</span>
           </button>
           {showRaw && (
-            <div className="p-4 border-t border-[#1e293b]">
-              <pre className="text-[#94a3b8] text-xs whitespace-pre-wrap font-mono leading-relaxed max-h-64 overflow-y-auto">{doc.raw_text}</pre>
+            <div className="p-4 border-t border-[#f1f5f9]">
+              <pre className="text-[#475569] text-xs whitespace-pre-wrap font-mono leading-relaxed max-h-64 overflow-y-auto">{doc.raw_text}</pre>
             </div>
           )}
         </div>
