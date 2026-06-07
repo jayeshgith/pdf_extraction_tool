@@ -115,7 +115,7 @@ export default function ExtractionPage() {
     if (!id) return
     let cancelled = false
     let pollTimer = null
-    const POLL_TIMEOUT = 300000
+    const POLL_TIMEOUT = 600000
     const startTime = Date.now()
 
     const wsBase = (import.meta.env.VITE_API_URL || '').replace(/^http/, 'ws').replace(/\/api\/?$/, '')
@@ -181,11 +181,13 @@ export default function ExtractionPage() {
           if (res.data.status === 'processing') {
             if (Date.now() - startTime > POLL_TIMEOUT) {
               setProcessing(false)
-              setError('Extraction took too long. Check backend terminal for ⏱️ logs to see what is slow.')
+              setError('Extraction is taking longer than expected. The server may be waking up from sleep (cold start). Please try uploading again.')
               return
             }
             setProcessing(true)
-            pollTimer = setTimeout(fetchDoc, 2000)
+            setProgressStep(res.data.progress_step || 'processing')
+            setProgressMessage(res.data.progress_message || 'Running OCR and AI extraction...')
+            pollTimer = setTimeout(fetchDoc, 3000)
           } else {
             setProcessing(false)
             setProgressStep(res.data.progress_step || '')
