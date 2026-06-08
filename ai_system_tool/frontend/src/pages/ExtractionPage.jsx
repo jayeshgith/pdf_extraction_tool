@@ -81,7 +81,6 @@ export default function ExtractionPage() {
   const [processing, setProcessing] = useState(false)
   const [numPages, setNumPages] = useState(null)
   const [pageNum, setPageNum] = useState(1)
-  const [showRaw, setShowRaw] = useState(false)
   const [scale, setScale] = useState(1)
   const [saveIndicator, setSaveIndicator] = useState('')
   const [progressStep, setProgressStep] = useState('')
@@ -500,22 +499,6 @@ export default function ExtractionPage() {
         </div>
       </div>
 
-      {doc.raw_text && (
-        <div className="bg-[#ffffff] border border-[#f1f5f9] rounded-xl overflow-hidden">
-          <button
-            onClick={() => setShowRaw(!showRaw)}
-            className="w-full p-4 flex items-center justify-between text-[#0f172a] text-sm font-medium hover:bg-[#f1f5f9]/50 transition-colors"
-          >
-            <span>Raw Extracted Text</span>
-            <span className="text-[#64748b] text-xs">{showRaw ? 'Hide' : 'Show'} ({doc.raw_text.length} chars)</span>
-          </button>
-          {showRaw && (
-            <div className="p-4 border-t border-[#f1f5f9]">
-              <pre className="text-[#475569] text-xs whitespace-pre-wrap font-mono leading-relaxed max-h-64 overflow-y-auto">{doc.raw_text}</pre>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }
