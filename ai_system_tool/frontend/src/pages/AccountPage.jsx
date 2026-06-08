@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { UserCircle2, Camera, Save, LogOut, Mail, Edit3 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { updateProfile } from '../services/api'
 
 export default function AccountPage() {
   const { user, logout, updateUser } = useAuth()
@@ -21,6 +22,10 @@ export default function AccountPage() {
   const handleAvatarChange = async (event) => {
     const file = event.target.files?.[0]
     if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage('Please select an image smaller than 5MB.')
+      return
+    }
     const reader = new FileReader()
     reader.onload = () => {
       setAvatarUrl(reader.result)
@@ -32,15 +37,24 @@ export default function AccountPage() {
     setSaving(true)
     setMessage('')
     try {
-      updateUser({
-        ...user,
-        name,
-        email,
-        avatarUrl,
-      })
+      const payload = {
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        avatar_url: avatarUrl,
+      }
+      const res = await updateProfile(payload)
+      const updatedUser = {
+        ...res.data.user,
+        avatarUrl: res.data.user.avatar_url || res.data.user.avatarUrl,
+      }
+      updateUser(updatedUser)
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token)
+      }
       setMessage('Profile updated successfully.')
     } catch (err) {
-      setMessage('Unable to save profile changes. Please try again.')
+      const message = err?.response?.data?.detail || err.message || 'Unable to save profile changes. Please try again.'
+      setMessage(message)
     } finally {
       setSaving(false)
     }
@@ -59,7 +73,6 @@ export default function AccountPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-[#0f172a]">Account</h2>
-          <p className="text-sm text-[#64748b] mt-1">Update your profile and sign out from here.</p>
         </div>
         <button
           onClick={logout}
@@ -113,11 +126,7 @@ export default function AccountPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
-            <p className="text-sm text-[#475569]">Your account data is shown here for quick edits. If profile persistence is enabled on the backend, these values will be saved across sessions.</p>
-          </div>
-
-          {message && (
+            {message && (
             <div className="rounded-2xl border border-[#c7d2fe] bg-[#eff6ff] px-4 py-3 text-sm text-[#1e293b]">
               {message}
             </div>
@@ -132,9 +141,7 @@ export default function AccountPage() {
               <Save size={16} />
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
-            <div className="text-xs text-[#64748b]">
-              Upload a profile photo and keep your account details current.
-            </div>
+            <div className="text-xs text-[#64748b]">Photo uploads must be 5MB or smaller.</div>
           </div>
         </div>
       </div>

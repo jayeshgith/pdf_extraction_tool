@@ -47,6 +47,7 @@ export const listDocuments = (page = 1, limit = 10, filters = {}) =>
 export const deleteDocument = (id) => api.delete(`/documents/${id}`)
 
 export const updateDocument = (id, data) => api.put(`/documents/${id}`, data)
+export const updateProfile = (data) => api.put('/auth/profile', data)
 
 export const forgotPassword = (email) => api.post('/auth/forgot-password', { email })
 

@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 
 const AuthContext = createContext(null)
@@ -17,12 +16,12 @@ export function AuthProvider({ children }) {
     }
     try {
       const res = await api.get('/auth/me')
-      const savedProfile = localStorage.getItem('userProfile')
-      const profile = savedProfile ? JSON.parse(savedProfile) : {}
-      setUser({ ...res.data, ...profile })
+      setUser({
+        ...res.data,
+        avatarUrl: res.data.avatar_url || res.data.avatarUrl,
+      })
     } catch {
       localStorage.removeItem('token')
-      localStorage.removeItem('userProfile')
       setUser(null)
     } finally {
       setLoading(false)
@@ -33,37 +32,35 @@ export function AuthProvider({ children }) {
 
   const updateUser = (updatedUser) => {
     setUser(updatedUser)
-    try {
-      localStorage.setItem('userProfile', JSON.stringify(updatedUser))
-    } catch {
-      // ignore local storage errors
-    }
   }
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password })
     localStorage.setItem('token', res.data.token)
-    localStorage.removeItem('userProfile')
-    setUser(res.data.user)
+    setUser({
+      ...res.data.user,
+      avatarUrl: res.data.user.avatar_url || res.data.user.avatarUrl,
+    })
     return res.data
   }
 
   const signup = async (email, name, password) => {
     const res = await api.post('/auth/signup', { email, name, password })
     localStorage.setItem('token', res.data.token)
-    localStorage.removeItem('userProfile')
-    setUser(res.data.user)
+    setUser({
+      ...res.data.user,
+      avatarUrl: res.data.user.avatar_url || res.data.user.avatarUrl,
+    })
     return res.data
   }
 
   const logout = () => {
     localStorage.removeItem('token')
-    localStorage.removeItem('userProfile')
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, checkAuth, updateUser }}>
       {children}
     </AuthContext.Provider>
   )
