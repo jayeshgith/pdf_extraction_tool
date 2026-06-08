@@ -118,10 +118,14 @@ export default function Layout({ children }) {
               to="/account"
               className="flex items-center gap-2.5 px-3 py-1.5 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl hover:border-[#6366f1]/40 transition-all duration-200"
             >
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#818cf8] to-[#38bdf8] flex items-center justify-center text-xs font-bold text-white shadow-sm">
-                {user.name?.charAt(0)?.toUpperCase() || '?'}
+              <div className="w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-[#818cf8] to-[#38bdf8] flex items-center justify-center text-xs font-bold text-white shadow-sm flex-shrink-0">
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  user.name?.charAt(0)?.toUpperCase() || '?'
+                )}
               </div>
-              <span className="text-xs text-[#cbd5e1] font-medium hidden md:inline">{user.name}</span>
+              <span className="text-xs text-[#cbd5e1] font-medium hidden md:inline truncate max-w-[100px]">{user.name}</span>
               {user.role === 'admin' && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#818cf8]/20 text-[#818cf8] font-semibold ml-0.5">admin</span>
               )}
