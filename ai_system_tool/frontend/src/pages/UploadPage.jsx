@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
 import { Upload, X, CheckCircle, AlertCircle, Loader2, Image, FileText } from 'lucide-react'
 import { uploadDocument } from '../services/api'
+import Breadcrumb from '../components/Breadcrumb'
 
 const ALLOWED_TYPES = {
   'image/jpeg': '.jpg',
@@ -66,6 +67,7 @@ export default function UploadPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      <Breadcrumb items={[{ label: 'Upload' }]} />
       <div className="text-center">
         <h2 className="text-xl md:text-2xl font-bold text-[#0f172a]">Upload Document</h2>
         <p className="text-[#64748b] mt-1 text-sm md:text-base">

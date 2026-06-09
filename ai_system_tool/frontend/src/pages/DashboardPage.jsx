@@ -5,6 +5,7 @@ import {
   Eye, Trash2,
   TrendingUp, Award, Layers, Sparkles, ExternalLink
 } from 'lucide-react'
+import Breadcrumb from '../components/Breadcrumb'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -123,6 +124,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb />
       <div>
         <h2 className="text-2xl font-bold text-[#0f172a] flex items-center gap-2">
           <Sparkles className="text-[#6366f1]" size={24} /> Dashboard Overview

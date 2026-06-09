@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Bot, FileText, Loader2, Send, User } from 'lucide-react'
 import { askQuestion, listDocuments } from '../services/api'
+import Breadcrumb from '../components/Breadcrumb'
 
 const suggestions = [
   'What is my name?',
@@ -75,7 +76,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className={`h-full flex flex-col bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm p-4 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+    <div className="h-full flex flex-col">
+      <Breadcrumb items={[{ label: 'Chat' }]} />
+      <div className={`flex-1 flex flex-col bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm p-4 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
       <div className="flex items-center gap-3 mb-4">
         <div className="relative flex-1">
           <FileText size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748b] pointer-events-none" />
@@ -189,6 +192,7 @@ export default function ChatPage() {
           </div>
         </>
       )}
+    </div>
     </div>
   )
 }

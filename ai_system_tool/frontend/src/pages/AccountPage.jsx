@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { UserCircle2, Camera, Save, LogOut, Mail, Edit3 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { updateProfile } from '../services/api'
+import Breadcrumb from '../components/Breadcrumb'
 
 export default function AccountPage() {
   const { user, logout, updateUser } = useAuth()
@@ -70,6 +71,7 @@ export default function AccountPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb items={[{ label: 'Account' }]} />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-[#0f172a]">Account</h2>

@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Document, Page, pdfjs } from 'react-pdf'
+import Breadcrumb from '../components/Breadcrumb'
 import {
-  ArrowLeft, Save, Edit2, Check, X, Loader2, AlertCircle,
+  Save, Edit2, Check, X, Loader2, AlertCircle,
   Fingerprint, User, Calendar, Globe, Hash, MapPin, FileText,
   Mail, Phone, BookOpen, Briefcase, DollarSign, Building,
   ZoomIn, ZoomOut, RotateCcw,
@@ -271,14 +272,11 @@ export default function ExtractionPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb items={[
+        { label: 'Documents', href: '/documents' },
+        { label: doc?.original_name || 'Extraction' },
+      ]} />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-[#475569] hover:text-[#0f172a] transition-colors w-fit"
-        >
-          <ArrowLeft size={20} />
-          <span className="text-sm font-medium">Back</span>
-        </button>
         <div className="flex items-center gap-2 flex-wrap">
           <a
             href={fileUrl}

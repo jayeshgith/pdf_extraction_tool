@@ -6,6 +6,7 @@ import {
   FileText, Image, Layers, ExternalLink,
 } from 'lucide-react'
 import { uploadBulkDocuments } from '../services/api'
+import Breadcrumb from '../components/Breadcrumb'
 
 const ALLOWED_TYPES = {
   'image/jpeg': '.jpg',
@@ -80,6 +81,7 @@ export default function BulkUploadPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      <Breadcrumb items={[{ label: 'Bulk Upload' }]} />
       <div>
         <h2 className="text-xl md:text-2xl font-bold text-[#0f172a]">Bulk Upload</h2>
         <p className="text-[#64748b] text-sm mt-1">

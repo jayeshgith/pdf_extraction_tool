@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, Save, AlertCircle, Loader2, X } from 'lucide-react'
 import api from '../services/api'
+import Breadcrumb from '../components/Breadcrumb'
 
 const EMPTY_FIELD = { key: '', description: '', regex_pattern: '', is_required: true }
 
@@ -124,6 +125,7 @@ export default function AdminConfigsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      <Breadcrumb items={[{ label: 'Admin' }]} />
       <div>
         <h2 className="text-xl md:text-2xl font-bold text-[#0f172a]">Document Configs</h2>
         <p className="text-[#64748b] text-sm mt-1">

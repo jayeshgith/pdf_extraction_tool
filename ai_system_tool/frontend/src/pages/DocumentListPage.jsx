@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight, Clock,
 } from 'lucide-react'
 import { listDocuments, deleteDocument } from '../services/api'
+import Breadcrumb from '../components/Breadcrumb'
 
 const MONTHS = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -95,6 +96,7 @@ export default function DocumentListPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb items={[{ label: 'Documents' }]} />
       <div>
         <h2 className="text-xl md:text-2xl font-bold text-[#0f172a]">All Documents</h2>
         <p className="text-[#64748b] text-sm mt-1">
