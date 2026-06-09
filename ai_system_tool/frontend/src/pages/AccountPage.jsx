@@ -141,7 +141,6 @@ export default function AccountPage() {
               <Save size={16} />
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
-            <div className="text-xs text-[#64748b]">Photo uploads must be 5MB or smaller.</div>
           </div>
         </div>
       </div>
