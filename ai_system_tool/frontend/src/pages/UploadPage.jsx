@@ -70,9 +70,6 @@ export default function UploadPage() {
       <Breadcrumb items={[{ label: 'Upload' }]} />
       <div className="text-center">
         <h2 className="text-xl md:text-2xl font-bold text-[#0f172a]">Upload Document</h2>
-        <p className="text-[#64748b] mt-1 text-sm md:text-base">
-          Upload a passport, PAN card, Aadhaar card, bill, resume, or any PDF/image for AI extraction
-        </p>
       </div>
 
       <div

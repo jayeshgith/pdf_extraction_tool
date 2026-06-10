@@ -99,9 +99,6 @@ export default function DocumentListPage() {
       <Breadcrumb items={[{ label: 'Documents' }]} />
       <div>
         <h2 className="text-xl md:text-2xl font-bold text-[#0f172a]">All Documents</h2>
-        <p className="text-[#64748b] text-sm mt-1">
-          Browse, filter, and manage all extracted documents
-        </p>
       </div>
 
       <div className="bg-[#ffffff] border border-[#f1f5f9] rounded-xl p-4 space-y-4">

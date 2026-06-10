@@ -128,9 +128,6 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-bold text-[#0f172a] flex items-center gap-2">
           <Sparkles className="text-[#6366f1]" size={24} /> Dashboard Overview
         </h2>
-        <p className="text-[#64748b] text-sm mt-1">
-          Monitor your document extraction queues, success rates, and type distributions.
-        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
