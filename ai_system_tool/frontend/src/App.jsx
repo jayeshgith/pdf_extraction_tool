@@ -21,6 +21,14 @@ function ProtectedRoute({ children }) {
   return <Layout>{children}</Layout>
 }
 
+function AdminRoute({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  if (!user) return <Navigate to="/login" replace />
+  if (user.role !== 'admin') return <Navigate to="/dashboard" replace />
+  return <Layout>{children}</Layout>
+}
+
 function PublicRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return null
@@ -41,7 +49,7 @@ function App() {
       <Route path="/extraction/:id" element={<ProtectedRoute><ExtractionPage /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
       <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><AdminConfigsPage /></ProtectedRoute>} />
+      <Route path="/admin" element={<AdminRoute><AdminConfigsPage /></AdminRoute>} />
       <Route path="/bulk" element={<ProtectedRoute><BulkUploadPage /></ProtectedRoute>} />
       <Route path="/documents" element={<ProtectedRoute><DocumentListPage /></ProtectedRoute>} />
     </Routes>
